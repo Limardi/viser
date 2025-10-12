@@ -37,11 +37,34 @@ from viser.extras.colmap import (
     read_images_binary,
     read_points3d_binary,
 )
+a
+def rot_from_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Return a 3x3 rotation matrix that rotates unit vector a onto unit vector b."""
+    a = a / np.linalg.norm(a); b = b / np.linalg.norm(b)
+    v = np.cross(a, b)
+    c = float(np.dot(a, b))
+    if np.isclose(c, 1.0):      # already aligned
+        return np.eye(3)
+    if np.isclose(c, -1.0):     # opposite: pick any orthogonal axis
+        # find a vector orthogonal to a
+        tmp = np.array([1.0, 0.0, 0.0]) if abs(a[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+        axis = np.cross(a, tmp); axis /= np.linalg.norm(axis)
+        # Rodrigues with theta=pi
+        K = np.array([[0, -axis[2], axis[1]],
+                      [axis[2], 0, -axis[0]],
+                      [-axis[1], axis[0], 0]])
+        return -np.eye(3) + 2*np.outer(axis, axis)
+    # general case (Rodrigues)
+    s = np.linalg.norm(v)
+    K = np.array([[0, -v[2], v[1]],
+                  [v[2], 0, -v[0]],
+                  [-v[1], v[0], 0]])
+    return np.eye(3) + K + K @ K * ((1 - c) / (s**2))
 
 
 def main(
-    colmap_path: Path = Path(__file__).parent / "../assets/colmap_garden/sparse/0",
-    images_path: Path = Path(__file__).parent / "../assets/colmap_garden/images_8",
+    colmap_path: Path = Path(__file__).parent / "../assets/room/sparse/0",
+    images_path: Path = Path(__file__).parent / "../assets/room/images",
     downsample_factor: int = 2,
     reorient_scene: bool = True,
 ) -> None:
@@ -55,6 +78,7 @@ def main(
     server = viser.ViserServer()
     server.gui.configure_theme(titlebar_content=None, control_layout="collapsible")
 
+    server.scene.set_up_direction((0.0, 0.0, 1.0))  # +Z is up
     # Load the colmap info.
     cameras = read_cameras_binary(colmap_path / "cameras.bin")
     images = read_images_binary(colmap_path / "images.bin")
@@ -70,13 +94,46 @@ def main(
 
     # Let's rotate the scene so the average camera direction is pointing up.
     if reorient_scene:
-        average_up = (
-            vtf.SO3(np.array([img.qvec for img in images.values()]))
-            @ np.array([0.0, -1.0, 0.0])  # -y is up in the local frame!
-        ).mean(axis=0)
+        cam_local_up = np.array([0.0, -1.0, 0.0])
+        world_up_samples = np.array([
+            (vtf.SO3(img.qvec).inverse() @ cam_local_up)  # qvec is world->cam; invert to cam->world
+            for img in images.values()
+        ])
+        average_up = world_up_samples.mean(axis=0)
         average_up /= np.linalg.norm(average_up)
-        server.scene.set_up_direction((average_up[0], average_up[1], average_up[2]))
 
+        target_up = np.array([0.0, 0.0, 1.0])  # we want +Z up in viewer
+        R_align = rot_from_a_to_b(average_up, target_up)  # 3x3
+        Twc_all = [
+            vtf.SE3.from_rotation_and_translation(vtf.SO3(img.qvec), img.tvec).inverse()
+            for img in images.values()
+        ]
+        cam_positions = np.stack([Twc.translation() for Twc in Twc_all], axis=0)
+        scene_center = cam_positions.mean(axis=0)
+
+        # (keep pts_np for rotating points later)
+        pts_np = np.array([points3d[p_id].xyz for p_id in points3d])
+
+        def apply_RT(R: np.ndarray, t: np.ndarray) -> (np.ndarray, np.ndarray):
+            # Rotate the WORLD by R_align and recenter at scene_center
+            R_new = R_align @ R
+            t_new = R_align @ (t - scene_center)
+            return R_new, t_new
+
+        # Precompute reoriented points/colors
+        points = (R_align @ (pts_np - scene_center).T).T
+        colors = np.array([points3d[p_id].rgb for p_id in points3d])
+
+        # Tell the viewer that +Z is up for orbit controls.
+        server.scene.set_up_direction((0.0, 0.0, 1.0))
+    else:
+        # Identity fallback so the code still runs when reorient_scene=False
+        R_align = np.eye(3)
+        scene_center = np.zeros(3)
+
+        def apply_RT(R: np.ndarray, t: np.ndarray):
+            return R, t
+            
     @gui_reset_up.on_click
     def _(event: viser.GuiEvent) -> None:
         client = event.client
@@ -135,13 +192,24 @@ def main(
             if not image_filename.exists():
                 continue
 
-            T_world_camera = vtf.SE3.from_rotation_and_translation(
-                vtf.SO3(img.qvec), img.tvec
-            ).inverse()
+            T_world_camera = (
+                vtf.SE3.from_rotation_and_translation(vtf.SO3(img.qvec), img.tvec).inverse()
+            )
+            R_wc = T_world_camera.rotation().as_matrix()   # 3x3
+            t_wc = T_world_camera.translation()            # (3,)
+
+            R_wc_new, t_wc_new = apply_RT(R_wc, t_wc)
+
+            # depending on viser version, one of these constructors exists:
+            try:
+                wxyz_new = vtf.SO3.from_matrix(R_wc_new).wxyz
+            except AttributeError:
+                wxyz_new = vtf.SO3(R_wc_new).wxyz
+
             frame = server.scene.add_frame(
                 f"/colmap/frame_{img_id}",
-                wxyz=T_world_camera.rotation().wxyz,
-                position=T_world_camera.translation(),
+                wxyz=wxyz_new,
+                position=t_wc_new,
                 axes_length=0.1,
                 axes_radius=0.005,
             )
