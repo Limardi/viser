@@ -129,6 +129,8 @@ export const CameraFrustumComponent = React.forwardRef<
     message.props.color[2] / 255,
   );
 
+  const lineOpacity = message.props.opacity ?? 1.0;
+
   return (
     <group ref={ref}>
       {/* Wireframe lines - always visible */}
@@ -138,6 +140,8 @@ export const CameraFrustumComponent = React.forwardRef<
         lineWidth={
           isHovered ? 1.5 * message.props.line_width : message.props.line_width
         }
+        transparent={lineOpacity < 1.0}
+        opacity={lineOpacity}
         segments
       />
 
@@ -146,8 +150,8 @@ export const CameraFrustumComponent = React.forwardRef<
         <mesh geometry={geometry}>
           <meshBasicMaterial
             color={isHovered ? 0xfbff00 : color}
-            transparent
-            opacity={0.3}
+            transparent={lineOpacity < 1.0}
+            opacity={lineOpacity}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -169,7 +173,8 @@ export const CameraFrustumComponent = React.forwardRef<
           />
           <meshBasicMaterial
             attach="material"
-            transparent={true}
+            transparent={lineOpacity < 1.0}
+            opacity={lineOpacity}
             side={THREE.DoubleSide}
             map={imageTexture}
             toneMapped={false}

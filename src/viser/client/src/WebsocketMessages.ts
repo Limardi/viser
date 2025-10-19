@@ -15,6 +15,7 @@ export interface CameraFrustumMessage {
     scale: number;
     line_width: number;
     color: [number, number, number];
+    opacity: number | null;
     _format: "jpeg" | "png";
     _image_data: Uint8Array<ArrayBuffer> | null;
     cast_shadow: boolean;

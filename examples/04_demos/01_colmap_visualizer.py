@@ -37,7 +37,8 @@ from viser.extras.colmap import (
     read_images_binary,
     read_points3d_binary,
 )
-a
+
+
 def rot_from_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Return a 3x3 rotation matrix that rotates unit vector a onto unit vector b."""
     a = a / np.linalg.norm(a); b = b / np.linalg.norm(b)
@@ -49,10 +50,6 @@ def rot_from_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
         # find a vector orthogonal to a
         tmp = np.array([1.0, 0.0, 0.0]) if abs(a[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
         axis = np.cross(a, tmp); axis /= np.linalg.norm(axis)
-        # Rodrigues with theta=pi
-        K = np.array([[0, -axis[2], axis[1]],
-                      [axis[2], 0, -axis[0]],
-                      [-axis[1], axis[0], 0]])
         return -np.eye(3) + 2*np.outer(axis, axis)
     # general case (Rodrigues)
     s = np.linalg.norm(v)
@@ -92,7 +89,6 @@ def main(
         hint="Set the camera control 'up' direction to the current camera's 'up'.",
     )
 
-    # Let's rotate the scene so the average camera direction is pointing up.
     if reorient_scene:
         cam_local_up = np.array([0.0, -1.0, 0.0])
         world_up_samples = np.array([
@@ -111,7 +107,6 @@ def main(
         cam_positions = np.stack([Twc.translation() for Twc in Twc_all], axis=0)
         scene_center = cam_positions.mean(axis=0)
 
-        # (keep pts_np for rotating points later)
         pts_np = np.array([points3d[p_id].xyz for p_id in points3d])
 
         def apply_RT(R: np.ndarray, t: np.ndarray) -> (np.ndarray, np.ndarray):
@@ -187,7 +182,6 @@ def main(
             img = images[img_id]
             cam = cameras[img.camera_id]
 
-            # Skip images that don't exist.
             image_filename = images_path / img.name
             if not image_filename.exists():
                 continue

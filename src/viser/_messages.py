@@ -241,6 +241,10 @@ class CameraFrustumProps:
     """Width of the frustum lines."""
     color: Tuple[int, int, int]
     """Color of the frustum as RGB integers. """
+
+    opacity: Optional[float]
+    """Opacity of the frustum. None means opaque. """
+
     _format: Literal["jpeg", "png"]
     """Format of the provided image ('jpeg' or 'png'). Synchronized
     """
