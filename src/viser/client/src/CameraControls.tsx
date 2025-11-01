@@ -503,6 +503,10 @@ export function SynchronizedCameraControls() {
       down: new holdEvent.KeyboardKeyHold("ArrowDown", 1000 / 60),
       left: new holdEvent.KeyboardKeyHold("ArrowLeft", 1000 / 60),
       right: new holdEvent.KeyboardKeyHold("ArrowRight", 1000 / 60),
+      i: new holdEvent.KeyboardKeyHold("KeyI", 1000 / 60),
+      j: new holdEvent.KeyboardKeyHold("KeyJ", 1000 / 60),
+      k: new holdEvent.KeyboardKeyHold("KeyK", 1000 / 60),
+      l: new holdEvent.KeyboardKeyHold("KeyL", 1000 / 60),
     };
 
     // TODO: these event listeners are currently never removed, even if this
@@ -547,6 +551,35 @@ export function SynchronizedCameraControls() {
       );
     });
     keys.down.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
+      cameraControls.rotate(
+        0,
+        0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        true,
+      );
+    });
+    // IJ-KL mirror the arrow keys for orientation control
+    keys.j.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
+      cameraControls.rotate(
+        -0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        0,
+        true,
+      );
+    });
+    keys.l.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
+      cameraControls.rotate(
+        0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        0,
+        true,
+      );
+    });
+    keys.i.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
+      cameraControls.rotate(
+        0,
+        -0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        true,
+      );
+    });
+    keys.k.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
         0,
         0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,

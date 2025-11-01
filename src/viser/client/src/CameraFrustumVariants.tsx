@@ -140,8 +140,6 @@ export const CameraFrustumComponent = React.forwardRef<
         lineWidth={
           isHovered ? 1.5 * message.props.line_width : message.props.line_width
         }
-        transparent={lineOpacity < 1.0}
-        opacity={lineOpacity}
         segments
       />
 
