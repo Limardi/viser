@@ -507,6 +507,11 @@ function createObjectFactory(
                 lineWidth={message.props.line_width}
                 vertexColors={colorArray}
                 segments={true}
+                  opacity={message.props.opacity ?? 1}
+                  transparent={
+                    message.props.opacity !== undefined &&
+                    message.props.opacity < 1
+                  }
               />
               {children}
             </group>

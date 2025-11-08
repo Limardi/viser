@@ -664,6 +664,7 @@ class SceneApi:
         colors: np.ndarray | RgbTupleOrArray,
         *,
         line_width: float = 1,
+        opacity: float | None = None,
         wxyz: tuple[float, float, float, float] | np.ndarray = (1.0, 0.0, 0.0, 0.0),
         position: tuple[float, float, float] | np.ndarray = (0.0, 0.0, 0.0),
         visible: bool = True,
@@ -679,6 +680,7 @@ class SceneApi:
                 np.ndarray of shape (3,) to apply to all segments, or an np.ndarray of
                 shape (N, 2, 3) to specify colors for each point of each segment.
             line_width: Width of the lines.
+            opacity: Optional opacity for line segments material in [0, 1].
             wxyz: Quaternion rotation to parent frame from local frame (R_pl).
             position: Translation to parent frame from local frame (t_pl).
             visible: Whether or not these line segments are initially visible.
@@ -703,6 +705,7 @@ class SceneApi:
                 points=points_array,
                 colors=colors_array,
                 line_width=line_width,
+                opacity=float(opacity) if opacity is not None else None,
             ),
         )
         return LineSegmentsHandle._make(self, message, name, wxyz, position, visible)

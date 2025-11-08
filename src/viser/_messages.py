@@ -1548,6 +1548,8 @@ class LineSegmentsProps:
     colors: npt.NDArray[np.uint8]
     """Numpy array of shape (N, 2, 3) containing a color for each point.
     """
+    opacity: float | None = None
+    """Optional opacity for the line segments material in [0, 1]. If None, opaque."""
 
 
 @dataclasses.dataclass

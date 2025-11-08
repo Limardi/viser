@@ -387,6 +387,7 @@ export interface LineSegmentsMessage {
     points: Uint8Array<ArrayBuffer>;
     line_width: number;
     colors: Uint8Array<ArrayBuffer>;
+    opacity?: number;
   };
 }
 /** Message from server->client carrying Catmull-Rom spline information.

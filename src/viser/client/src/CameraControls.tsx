@@ -512,33 +512,33 @@ export function SynchronizedCameraControls() {
     // TODO: these event listeners are currently never removed, even if this
     // component gets unmounted.
     keys.a.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.truck(-0.002 * event?.deltaTime, 0, false);
+      cameraControls.truck(-0.001 * event?.deltaTime, 0, false);
     });
     keys.d.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.truck(0.002 * event?.deltaTime, 0, false);
+      cameraControls.truck(0.001 * event?.deltaTime, 0, false);
     });
     keys.w.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.forward(0.002 * event?.deltaTime, false);
+      cameraControls.forward(0.001 * event?.deltaTime, false);
     });
     keys.s.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.forward(-0.002 * event?.deltaTime, false);
+      cameraControls.forward(-0.001 * event?.deltaTime, false);
     });
     keys.q.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.elevate(-0.002 * event?.deltaTime, false);
+      cameraControls.elevate(-0.001 * event?.deltaTime, false);
     });
     keys.e.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
-      cameraControls.elevate(0.002 * event?.deltaTime, false);
+      cameraControls.elevate(0.001 * event?.deltaTime, false);
     });
     keys.left.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
-        -0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        -0.02 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
         0,
         true,
       );
     });
     keys.right.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
-        0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        0.02 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
         0,
         true,
       );
@@ -546,21 +546,21 @@ export function SynchronizedCameraControls() {
     keys.up.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
         0,
-        -0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        -0.02 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
         true,
       );
     });
     keys.down.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
         0,
-        0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        0.02 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
         true,
       );
     });
     // IJ-KL mirror the arrow keys for orientation control
     keys.j.addEventListener(holdEvent.HOLD_EVENT_TYPE.HOLDING, (event) => {
       cameraControls.rotate(
-        -0.05 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
+        -0.02 * THREE.MathUtils.DEG2RAD * event?.deltaTime,
         0,
         true,
       );
