@@ -23,12 +23,16 @@ export default function SidebarPanel({
   children,
   collapsible,
   width,
+  position = "right",
 }: {
   children: string | React.ReactNode;
   collapsible: boolean;
   width: string;
+  position?: "left" | "right";
 }) {
   const [collapsed, { toggle: toggleCollapsed }] = useDisclosure(false);
+
+  const isLeft = position === "left";
 
   const collapsedView = (
     <Box
@@ -36,12 +40,12 @@ export default function SidebarPanel({
         /* Animate in when collapsed. */
         position: "absolute",
         top: 0,
-        right: collapsed ? "0em" : "-3em",
-        transitionProperty: "right",
+        [isLeft ? "left" : "right"]: collapsed ? "0em" : "-3em",
+        transitionProperty: isLeft ? "left" : "right",
         transitionDuration: "0.5s",
         transitionDelay: "0.25s",
         /* Visuals. */
-        borderBottomLeftRadius: "0.5em",
+        [isLeft ? "borderBottomRightRadius" : "borderBottomLeftRadius"]: "0.5em",
         backgroundColor:
           useMantineColorScheme().colorScheme == "dark"
             ? theme.colors.dark[5]
@@ -56,7 +60,7 @@ export default function SidebarPanel({
         }}
       >
         <Tooltip zIndex={100} label={"Show sidebar"}>
-          {<IconChevronLeft />}
+          {isLeft ? <IconChevronRight /> : <IconChevronLeft />}
         </Tooltip>
       </ActionIcon>
     </Box>
@@ -90,7 +94,7 @@ export default function SidebarPanel({
           width: collapsed ? 0 : width,
           top: 0,
           bottom: 0,
-          right: 0,
+          [isLeft ? "left" : "right"]: 0,
           position: "absolute",
           boxSizing: "content-box",
           transition: "width 0.5s 0s",
@@ -117,11 +121,15 @@ export default function SidebarPanel({
 /** Handle object helps us hide, show, and drag our panel.*/
 SidebarPanel.Handle = function SidebarPanelHandle({
   children,
+  position = "right",
 }: {
   children: string | React.ReactNode;
+  position?: "left" | "right";
 }) {
   const { toggleCollapsed, collapsible } =
     React.useContext(SidebarPanelContext)!;
+
+  const isLeft = position === "left";
 
   const collapseSidebarToggleButton = (
     <ActionIcon
@@ -131,7 +139,11 @@ SidebarPanel.Handle = function SidebarPanelHandle({
       }}
     >
       <Tooltip zIndex={100} label={"Collapse sidebar"}>
-        {<IconChevronRight stroke={1.625} />}
+        {isLeft ? (
+          <IconChevronLeft stroke={1.625} />
+        ) : (
+          <IconChevronRight stroke={1.625} />
+        )}
       </Tooltip>
     </ActionIcon>
   );

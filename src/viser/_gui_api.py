@@ -177,6 +177,24 @@ class _FileUploadState(TypedDict):
     lock: threading.Lock
 
 
+class _ContainerContext:
+    """Context manager for setting the container UUID for GUI elements."""
+
+    def __init__(self, gui_api: "GuiApi", container_uuid: str) -> None:
+        self._gui_api = gui_api
+        self._container_uuid = container_uuid
+        self._previous_container_uuid: str | None = None
+
+    def __enter__(self) -> "_ContainerContext":
+        self._previous_container_uuid = self._gui_api._get_container_uuid()
+        self._gui_api._set_container_uuid(self._container_uuid)
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        if self._previous_container_uuid is not None:
+            self._gui_api._set_container_uuid(self._previous_container_uuid)
+
+
 class GuiApi:
     """Interface for working with the 2D GUI in viser.
 
@@ -387,6 +405,24 @@ class GuiApi:
     def _set_container_uuid(self, container_uuid: str) -> None:
         """Set container ID associated with the current thread."""
         self._target_container_from_thread_id[threading.get_ident()] = container_uuid
+
+    def container(self, container_uuid: str):
+        """Context manager to set the container UUID for GUI elements.
+        
+        Args:
+            container_uuid: The container UUID to use. Use "root" for the default
+                right panel, or "left_panel" for the left panel.
+        
+        Example:
+            ```python
+            with server.gui.container("left_panel"):
+                server.gui.add_slider("Value", min=0, max=100)
+            ```
+        """
+        # Ensure the container exists in _container_handle_from_uuid
+        if container_uuid not in self._container_handle_from_uuid:
+            self._container_handle_from_uuid[container_uuid] = _RootGuiContainer({})
+        return _ContainerContext(self, container_uuid)
 
     def reset(self) -> None:
         """Reset the GUI."""

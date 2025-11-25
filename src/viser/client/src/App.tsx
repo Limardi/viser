@@ -325,6 +325,13 @@ function ViewerContents({ children }: { children: React.ReactNode }) {
               display: "flex",
             }}
           >
+            {messageSource === "websocket" && (
+              <ControlPanel
+                control_layout={controlLayout}
+                containerUuid="left_panel"
+                position="left"
+              />
+            )}
             <Box
               style={(theme) => ({
                 backgroundColor: darkMode ? theme.colors.dark[9] : "#fff",
@@ -337,7 +344,11 @@ function ViewerContents({ children }: { children: React.ReactNode }) {
               {showLogo && messageSource === "websocket" && <ViserLogo />}
             </Box>
             {messageSource === "websocket" && (
-              <ControlPanel control_layout={controlLayout} />
+              <ControlPanel
+                control_layout={controlLayout}
+                containerUuid="root"
+                position="right"
+              />
             )}
           </Box>
         </Box>

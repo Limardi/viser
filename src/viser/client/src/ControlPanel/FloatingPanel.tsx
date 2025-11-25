@@ -40,12 +40,21 @@ const FloatingPanelContext = React.createContext<null | {
 }>(null);
 
 /** A floating panel for displaying controls. */
+type FloatingPanelOffset = {
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
 export default function FloatingPanel({
   children,
   width,
+  initialOffset,
 }: {
   children: string | React.ReactNode;
   width: string;
+  initialOffset?: FloatingPanelOffset;
 }) {
   const panelWrapperRef = React.useRef<HTMLDivElement>(null);
   const [expanded, { toggle: toggleExpanded }] = useDisclosure(true);
@@ -106,6 +115,32 @@ export default function FloatingPanel({
       computePanelOffset(newY, panel.clientHeight, parent.clientHeight),
     ];
   }
+
+  // Apply the initial offset once after mounting.
+  React.useLayoutEffect(() => {
+    const panel = panelWrapperRef.current;
+    if (panel === null) return;
+    const parent = panel.parentElement;
+    if (parent === null) return;
+
+    const { top, bottom, left, right } = initialOffset ?? {};
+
+    const calculatedX =
+      left !== undefined
+        ? left
+        : right !== undefined
+        ? parent.clientWidth - panel.clientWidth - right
+        : parent.clientWidth - panel.clientWidth - panelBoundaryPad;
+    const calculatedY =
+      top !== undefined
+        ? top
+        : bottom !== undefined
+        ? parent.clientHeight - panel.clientHeight - bottom
+        : panelBoundaryPad;
+
+    const [xOffset, yOffset] = setPanelLocation(calculatedX, calculatedY);
+    unfixedOffset.current = { x: xOffset, y: yOffset };
+  }, [initialOffset]);
 
   // Fix locations on resize.
   React.useEffect(() => {
@@ -221,8 +256,6 @@ export default function FloatingPanel({
           width: width,
           zIndex: 10,
           position: "absolute",
-          top: "1em",
-          right: "1em",
           margin: 0,
           "& .expandIcon": {
             transform: "rotate(0)",

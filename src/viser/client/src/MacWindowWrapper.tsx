@@ -4,12 +4,17 @@ export function MacWindowWrapper({
   width,
   height,
   fill = false,
+  offsetX = 0,
+  offsetY = 0,
 }: {
   children: React.ReactNode;
   title: string;
   width: number;
   height: number;
   fill?: boolean;
+  offsetX?: number;
+  offsetY?: number;
+  
 }) {
   const TITLEBAR_HEIGHT = 36; // px
 
@@ -23,9 +28,9 @@ export function MacWindowWrapper({
         // boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
         border: "1px solid rgba(0,0,0,0.2)",
         backgroundColor: "white",
-        transform: "translateX(-50%) translateY(-50%)",
-        top: "50%",
-        left: "50%",
+        left: `calc(50% + ${offsetX}px)`,
+        top: `calc(50% + ${offsetY}px)`,
+        transform: "translate(-50%, -50%)",
         position: "absolute",
       }}
     >

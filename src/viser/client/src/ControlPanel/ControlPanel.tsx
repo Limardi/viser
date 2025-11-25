@@ -46,17 +46,24 @@ const MemoizedGeneratedGuiContainer = React.memo(GeneratedGuiContainer);
 
 export default function ControlPanel(props: {
   control_layout: ThemeConfigurationMessage["control_layout"];
+  containerUuid?: string;
+  position?: "left" | "right";
 }) {
   const theme = useMantineTheme();
   const useMobileView = useMediaQuery(`(max-width: ${theme.breakpoints.xs})`);
+
+  const containerUuid = props.containerUuid ?? ROOT_CONTAINER_ID;
 
   // TODO: will result in unnecessary re-renders.
   const viewer = React.useContext(ViewerContext)!;
   const showGenerated = viewer.useGui(
     (state) =>
-      Object.keys(state.guiUuidSetFromContainerUuid["root"] ?? {}).length > 0,
+      Object.keys(state.guiUuidSetFromContainerUuid[containerUuid] ?? {}).length > 0,
   );
   const [showSettings, { toggle }] = useDisclosure(false);
+  
+  // Main panel (root) should always be visible, other panels only when they have content
+  const isMainPanel = containerUuid === ROOT_CONTAINER_ID;
 
   const controlWidthString = viewer.useGui(
     (state) => state.theme.control_width,
@@ -71,6 +78,9 @@ export default function ControlPanel(props: {
       : null
   )!;
 
+  // Show toggle button if there's content (for GUI toggle) OR if it's the main panel (for ServerControls toggle)
+  const shouldShowToggle = showGenerated || isMainPanel;
+  
   const generatedServerToggleButton = (
     <ActionIcon
       onClick={(evt) => {
@@ -78,13 +88,13 @@ export default function ControlPanel(props: {
         toggle();
       }}
       style={{
-        display: showGenerated ? undefined : "none",
+        display: shouldShowToggle ? undefined : "none",
         transform: "translateY(0.05em)",
       }}
     >
       <Tooltip
         zIndex={100}
-        label={showSettings ? "Return to GUI" : "Configuration & diagnostics"}
+        label={showSettings ? "Return to GUI" : isMainPanel ? "Configuration & diagnostics" : "Toggle view"}
         withinPortal
       >
         {showSettings ? (
@@ -98,16 +108,19 @@ export default function ControlPanel(props: {
 
   const panelContents = (
     <>
-      <Collapse in={!showGenerated || showSettings}>
-        <Box p="xs" pt="0.375em">
-          <ServerControls />
-        </Box>
-      </Collapse>
+      {/* ServerControls only in main panel (root), other panels show only GUI content */}
+      {isMainPanel && (
+        <Collapse in={!showGenerated || showSettings}>
+          <Box p="xs" pt="0.375em">
+            <ServerControls />
+          </Box>
+        </Collapse>
+      )}
       {/*As of Mantine 8.3.3, this `keepMounted` is necessary to prevent some
       intermittent problems with the initial GUI height being set to 0 when
       we're under high CPU load.*/}
       <Collapse in={showGenerated && !showSettings} keepMounted>
-        <MemoizedGeneratedGuiContainer containerUuid={ROOT_CONTAINER_ID} />
+        <MemoizedGeneratedGuiContainer containerUuid={containerUuid} />
       </Collapse>
     </>
   );
@@ -128,8 +141,14 @@ export default function ControlPanel(props: {
     );
   } else if (props.control_layout === "floating") {
     /* Floating layout. */
+    const floatingOffset =
+      props.position === "left"
+        ? { top: 16, left: 16 }
+        : props.position === "right"
+        ? { top: 16, right: 16 }
+        : undefined;
     return (
-      <FloatingPanel width={controlWidth}>
+      <FloatingPanel width={controlWidth} initialOffset={floatingOffset}>
         <FloatingPanel.Handle>
           <ConnectionStatus />
           <FloatingPanel.HideWhenCollapsed>
@@ -146,8 +165,9 @@ export default function ControlPanel(props: {
       <SidebarPanel
         width={controlWidth}
         collapsible={props.control_layout === "collapsible"}
+        position={props.position ?? "right"}
       >
-        <SidebarPanel.Handle>
+        <SidebarPanel.Handle position={props.position ?? "right"}>
           <ConnectionStatus />
           <ShareButton />
           {generatedServerToggleButton}
