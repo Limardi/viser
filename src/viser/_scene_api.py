@@ -968,6 +968,7 @@ class SceneApi:
         line_width: float = 2.0,
         color: RgbTupleOrArray = (20, 20, 20),
         opacity: float | None = None,
+        line_opacity: float | None = None,
         image: np.ndarray | None = None,
         format: Literal["auto", "png", "jpeg"] = "auto",
         jpeg_quality: int | None = None,
@@ -995,6 +996,9 @@ class SceneApi:
             scale: Scale factor for the size of the frustum.
             line_width: Width of the frustum lines, in screen space. Defaults to `2.0`.
             color: Color of the frustum as an RGB tuple.
+            opacity: Opacity of the frustum image and filled faces (0.0-1.0). None means fully opaque.
+            line_opacity: Opacity of the frustum line segments (0.0-1.0). None means fully opaque. 
+                If not provided, defaults to the `opacity` value.
             image: Optional image to be displayed on the frustum.
             format: Format to transport and display the image using. 'auto' will use PNG for RGBA images and JPEG for RGB.
             jpeg_quality: Quality of the jpeg image (if jpeg format is used).
@@ -1019,6 +1023,9 @@ class SceneApi:
             resolved_format = "png" if format == "auto" else format
             binary = None
 
+        # Default line_opacity to opacity if not provided
+        resolved_line_opacity = line_opacity if line_opacity is not None else opacity
+        
         message = _messages.CameraFrustumMessage(
             name=name,
             props=_messages.CameraFrustumProps(
@@ -1028,6 +1035,7 @@ class SceneApi:
                 line_width=line_width,
                 color=_encode_rgb(color),
                 opacity=opacity,
+                line_opacity=resolved_line_opacity,
                 _format=resolved_format,
                 _image_data=binary,
                 cast_shadow=cast_shadow,

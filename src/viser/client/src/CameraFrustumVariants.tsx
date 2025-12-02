@@ -129,11 +129,15 @@ export const CameraFrustumComponent = React.forwardRef<
     message.props.color[2] / 255,
   );
 
-  const lineOpacity = message.props.opacity ?? 1.0;
+  // Separate opacities: line_opacity for lines, opacity for image and filled faces
+  // Type assertion needed until auto-generated types are updated
+  const props = message.props as typeof message.props & { line_opacity?: number | null };
+  const lineOpacity = props.line_opacity ?? props.opacity ?? 1.0;
+  const imageOpacity = props.opacity ?? 1.0;
 
   return (
     <group ref={ref}>
-      {/* Wireframe lines - always visible */}
+      {/* Wireframe lines - use line_opacity */}
       <Line
         points={frustumPoints}
         color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
@@ -141,22 +145,24 @@ export const CameraFrustumComponent = React.forwardRef<
           isHovered ? 1.5 * message.props.line_width : message.props.line_width
         }
         segments
+        opacity={lineOpacity}
+        transparent={lineOpacity < 1.0}
       />
 
-      {/* Filled faces - only for "filled" variant */}
+      {/* Filled faces - only for "filled" variant, use image opacity */}
       {message.props.variant === "filled" && geometry && (
         <mesh geometry={geometry}>
           <meshBasicMaterial
             color={isHovered ? 0xfbff00 : color}
-            transparent={lineOpacity < 1.0}
-            opacity={lineOpacity}
+            transparent={imageOpacity < 1.0}
+            opacity={imageOpacity}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
         </mesh>
       )}
 
-      {/* Image plane */}
+      {/* Image plane - use image opacity */}
       {imageTexture && (
         <mesh
           // 0.999999 is to avoid z-fighting with the frustum lines.
@@ -171,8 +177,8 @@ export const CameraFrustumComponent = React.forwardRef<
           />
           <meshBasicMaterial
             attach="material"
-            transparent={lineOpacity < 1.0}
-            opacity={lineOpacity}
+            transparent={imageOpacity < 1.0}
+            opacity={imageOpacity}
             side={THREE.DoubleSide}
             map={imageTexture}
             toneMapped={false}

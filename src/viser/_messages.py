@@ -243,7 +243,7 @@ class CameraFrustumProps:
     """Color of the frustum as RGB integers. """
 
     opacity: Optional[float]
-    """Opacity of the frustum. None means opaque. """
+    """Opacity of the frustum image and filled faces. None means opaque. """
 
     _format: Literal["jpeg", "png"]
     """Format of the provided image ('jpeg' or 'png'). Synchronized
@@ -257,6 +257,8 @@ class CameraFrustumProps:
     """Whether to receive shadows. If True, receives shadows normally. If
     False, no shadows. If a float (0-1), shadows are rendered with a fixed
     opacity regardless of lighting conditions. """
+    line_opacity: Optional[float] = None
+    """Opacity of the frustum line segments. None means opaque. If not provided, defaults to opacity value. """
     variant: Literal["wireframe", "filled"] = "wireframe"
     """Variant of the frustum visualization. 'wireframe' shows lines only,
     'filled' adds semi-transparent faces. """

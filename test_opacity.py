@@ -18,7 +18,7 @@ image_paths = [
 images = [iio.imread(str(p)) for p in image_paths]
 
 
-# Test 1: Filled frustum with image, fully opaque
+# Test 1: Filled frustum with image, separate line and image opacity
 img1 = images[0]
 frustum1 = server.scene.add_camera_frustum(
     "/camera1_image_opaque",
@@ -26,13 +26,14 @@ frustum1 = server.scene.add_camera_frustum(
     aspect=16 / 9,
     scale=0.8,
     color=(255, 0, 0),  # Red
-    opacity=1.0,  # Fully opaque
+    opacity=1.0,  # Image opacity - fully opaque
+    line_opacity=0.5,  # Line opacity - semi-transparent lines
     image=img1,
     variant="wireframe",
     position=(0, 0, 0),
 )
 
-# Test 2: Filled frustum with image, medium opacity
+# Test 2: Filled frustum with image, different opacities
 img2 = images[1]
 frustum2 = server.scene.add_camera_frustum(
     "/camera2_image_medium",
@@ -40,7 +41,8 @@ frustum2 = server.scene.add_camera_frustum(
     aspect=16 / 9,
     scale=0.8,
     color=(0, 255, 0),  # Green
-    opacity=0.2,  # Medium transparency - IMAGE SHOULD BE SEMI-TRANSPARENT
+    opacity=0.3,  # Image opacity - very transparent image
+    line_opacity=1.0,  # Line opacity - fully opaque lines
     image=img2,
     variant="wireframe",
     position=(4, 0, 0),
@@ -48,40 +50,61 @@ frustum2 = server.scene.add_camera_frustum(
 
 
 print("=" * 70)
-print("Camera Frustum Opacity Test - WITH IMAGES")
+print("Camera Frustum Opacity Test - SEPARATE LINE AND IMAGE OPACITY")
 print("=" * 70)
 print("Test server running at http://localhost:8080")
 print()
-print("You should see 6 camera frustums:")
+print("You should see 2 camera frustums:")
 print()
-print("  1. RED filled with image (opacity=1.0) - FULLY OPAQUE")
-print("  2. GREEN filled with image (opacity=0.6) - Image should be semi-transparent")
-print("  3. BLUE filled with image (opacity=0.3) - Image should be very transparent")
-print("  4. YELLOW wireframe with image (opacity=0.5) - Lines AND image semi-transparent")
-print("  5. MAGENTA wireframe no image (opacity=0.4) - Only lines, semi-transparent")
-print("  6. CYAN filled no image (opacity=0.5) - Faces and lines semi-transparent")
+print("  1. RED frustum:")
+print("     - Image opacity: 1.0 (fully opaque)")
+print("     - Line opacity: 0.5 (semi-transparent lines)")
 print()
-print("KEY TEST: Check that images in frustums 2, 3, and 4 are transparent!")
+print("  2. GREEN frustum:")
+print("     - Image opacity: 0.3 (very transparent image)")
+print("     - Line opacity: 1.0 (fully opaque lines)")
+print()
+print("KEY TEST: Lines and images should have independent opacity!")
 print("=" * 70)
 
 # Add GUI elements to the right panel (root container - default)
 server.gui.add_markdown("## Right Panel Controls")
-opacity_slider = server.gui.add_slider(
-    "Frustum Opacity",
+
+# Separate controls for line opacity and image opacity
+server.gui.add_markdown("### Image Opacity (affects image and filled faces)")
+image_opacity_slider = server.gui.add_slider(
+    "Image Opacity",
     min=0.0,
     max=1.0,
-    initial_value=0.5,
-    step=0.1,
+    initial_value=1.0,  # Match frustum1's initial image opacity
+    step=0.01,
 )
 
-# Update frustum opacity when slider changes
-@opacity_slider.on_update
+@image_opacity_slider.on_update
 def _(_):
-    opacity_value = opacity_slider.value
-    # Update both frustums with the new opacity
+    opacity_value = image_opacity_slider.value
+    # Update image opacity for both frustums
     frustum1.opacity = opacity_value
     frustum2.opacity = opacity_value
-    print(f"Updated frustum opacity to: {opacity_value}")
+    print(f"Updated image opacity to: {opacity_value:.2f}")
+
+server.gui.add_markdown("### Line Opacity (affects line segments only)")
+line_opacity_slider = server.gui.add_slider(
+    "Line Opacity",
+    min=0.0,
+    max=1.0,
+    initial_value=0.5,  # Match frustum1's initial line opacity
+    step=0.01,
+)
+
+@line_opacity_slider.on_update
+def _(_):
+    line_opacity_value = line_opacity_slider.value
+    # Update line opacity for both frustums
+    # The line_opacity property is automatically available via AssignablePropsBase
+    frustum1.line_opacity = line_opacity_value
+    frustum2.line_opacity = line_opacity_value
+    print(f"Updated line opacity to: {line_opacity_value:.2f}")
 
 reset_button = server.gui.add_button("Reset Camera")
 @reset_button.on_click
