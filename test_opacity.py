@@ -9,40 +9,43 @@ server = viser.ViserServer()
 import imageio.v3 as iio
 from pathlib import Path
 
-assets_dir = Path("./examples/assets/room/images")
+assets_dir = Path("./examples/assets/0722_luffy3_jpg/images/")
 image_paths = [
-    assets_dir / "DSCF4667.JPG",
-    assets_dir / "DSCF4672.JPG",
-    assets_dir / "DSCF4685.JPG",
+    assets_dir / "IMG_0001.jpg",
+    assets_dir / "IMG_0002.jpg",
+    assets_dir / "IMG_0003.jpg",
 ]
 images = [iio.imread(str(p)) for p in image_paths]
 
 
-# Test 1: Filled frustum with image, separate line and image opacity
+# Test 1: Frustum with flat 2D lines
 img1 = images[0]
 frustum1 = server.scene.add_camera_frustum(
-    "/camera1_image_opaque",
+    "/camera1_flat_lines",
     fov=np.pi / 3,
-    aspect=16 / 9,
+    aspect=1 / 1.5,
     scale=0.8,
     color=(255, 0, 0),  # Red
     opacity=1.0,  # Image opacity - fully opaque
-    line_opacity=0.5,  # Line opacity - semi-transparent lines
+    line_opacity=1.0,  # Line opacity - fully opaque
+    line_style="flat",  # 2D flat lines
     image=img1,
     variant="wireframe",
     position=(0, 0, 0),
 )
 
-# Test 2: Filled frustum with image, different opacities
+# Test 2: Frustum with 3D tube lines
 img2 = images[1]
 frustum2 = server.scene.add_camera_frustum(
-    "/camera2_image_medium",
+    "/camera2_tube_lines",
     fov=np.pi / 3,
     aspect=16 / 9,
     scale=0.8,
     color=(0, 255, 0),  # Green
-    opacity=0.3,  # Image opacity - very transparent image
-    line_opacity=1.0,  # Line opacity - fully opaque lines
+    opacity=0.8,  # Image opacity - slightly transparent
+    line_opacity=1.0,  # Line opacity - fully opaque
+    line_style="tube",  # 3D tube/pipe lines
+    line_radius=0.02,  # Radius of the tubes
     image=img2,
     variant="wireframe",
     position=(4, 0, 0),
@@ -50,21 +53,22 @@ frustum2 = server.scene.add_camera_frustum(
 
 
 print("=" * 70)
-print("Camera Frustum Opacity Test - SEPARATE LINE AND IMAGE OPACITY")
+print("Camera Frustum Test - 3D TUBE LINES vs FLAT LINES")
 print("=" * 70)
 print("Test server running at http://localhost:8080")
 print()
 print("You should see 2 camera frustums:")
 print()
-print("  1. RED frustum:")
+print("  1. RED frustum (LEFT):")
+print("     - Line style: FLAT (2D screen-space lines)")
 print("     - Image opacity: 1.0 (fully opaque)")
-print("     - Line opacity: 0.5 (semi-transparent lines)")
 print()
-print("  2. GREEN frustum:")
-print("     - Image opacity: 0.3 (very transparent image)")
-print("     - Line opacity: 1.0 (fully opaque lines)")
+print("  2. GREEN frustum (RIGHT):")
+print("     - Line style: TUBE (3D cylindrical pipes)")
+print("     - Line radius: 0.02")
+print("     - Image opacity: 0.8")
 print()
-print("KEY TEST: Lines and images should have independent opacity!")
+print("KEY TEST: Green frustum should have 3D tube/pipe lines!")
 print("=" * 70)
 
 # Add GUI elements to the right panel (root container - default)
@@ -93,7 +97,7 @@ line_opacity_slider = server.gui.add_slider(
     "Line Opacity",
     min=0.0,
     max=1.0,
-    initial_value=0.5,  # Match frustum1's initial line opacity
+    initial_value=1.0,  # Match initial line opacity
     step=0.01,
 )
 
@@ -105,6 +109,35 @@ def _(_):
     frustum1.line_opacity = line_opacity_value
     frustum2.line_opacity = line_opacity_value
     print(f"Updated line opacity to: {line_opacity_value:.2f}")
+
+server.gui.add_markdown("### Line Radius (for tube style)")
+line_radius_slider = server.gui.add_slider(
+    "Tube Line Radius",
+    min=0.005,
+    max=0.05,
+    initial_value=0.02,
+    step=0.005,
+)
+
+@line_radius_slider.on_update
+def _(_):
+    radius_value = line_radius_slider.value
+    # Update line radius for both frustums
+    frustum1.line_radius = radius_value
+    frustum2.line_radius = radius_value
+    print(f"Updated line radius to: {radius_value:.3f}")
+
+server.gui.add_markdown("### Line Style")
+style_toggle = server.gui.add_button("Toggle Line Style (Flat/Tube)")
+
+@style_toggle.on_click
+def _(_):
+    # Toggle between flat and tube
+    current_style = frustum1.line_style
+    new_style = "tube" if current_style == "flat" else "flat"
+    frustum1.line_style = new_style
+    frustum2.line_style = new_style
+    print(f"Switched to {new_style} line style")
 
 reset_button = server.gui.add_button("Reset Camera")
 @reset_button.on_click

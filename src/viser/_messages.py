@@ -259,6 +259,10 @@ class CameraFrustumProps:
     opacity regardless of lighting conditions. """
     line_opacity: Optional[float] = None
     """Opacity of the frustum line segments. None means opaque. If not provided, defaults to opacity value. """
+    line_style: Literal["flat", "tube"] = "flat"
+    """Style of the frustum lines. 'flat' renders as 2D lines, 'tube' renders as 3D cylindrical pipes. """
+    line_radius: float = 0.01
+    """Radius of the line tubes when line_style is 'tube'. Ignored when line_style is 'flat'. """
     variant: Literal["wireframe", "filled"] = "wireframe"
     """Variant of the frustum visualization. 'wireframe' shows lines only,
     'filled' adds semi-transparent faces. """

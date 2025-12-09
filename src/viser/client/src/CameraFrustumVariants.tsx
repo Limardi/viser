@@ -6,6 +6,62 @@ import * as THREE from "three";
 import { CameraFrustumMessage } from "./WebsocketMessages";
 import { rgbToInt } from "./mesh/MeshUtils";
 
+/** Helper component to render a 3D tube/pipe between two points */
+function LineTube({
+  start,
+  end,
+  radius,
+  color,
+  opacity,
+}: {
+  start: [number, number, number];
+  end: [number, number, number];
+  radius: number;
+  color: THREE.Color | number;
+  opacity: number;
+}) {
+  const geometry = React.useMemo(() => {
+    const startVec = new THREE.Vector3(...start);
+    const endVec = new THREE.Vector3(...end);
+    const direction = new THREE.Vector3().subVectors(endVec, startVec);
+    const length = direction.length();
+    
+    // Create cylinder geometry
+    return new THREE.CylinderGeometry(radius, radius, length, 8);
+  }, [start, end, radius]);
+
+  const position = React.useMemo(() => {
+    const startVec = new THREE.Vector3(...start);
+    const endVec = new THREE.Vector3(...end);
+    return new THREE.Vector3()
+      .addVectors(startVec, endVec)
+      .multiplyScalar(0.5);
+  }, [start, end]);
+
+  const rotation = React.useMemo(() => {
+    const startVec = new THREE.Vector3(...start);
+    const endVec = new THREE.Vector3(...end);
+    const direction = new THREE.Vector3().subVectors(endVec, startVec);
+    direction.normalize();
+    
+    // Create quaternion to rotate cylinder (default orientation is along Y axis)
+    const quaternion = new THREE.Quaternion();
+    quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    
+    return new THREE.Euler().setFromQuaternion(quaternion);
+  }, [start, end]);
+
+  return (
+    <mesh geometry={geometry} position={position} rotation={rotation}>
+      <meshBasicMaterial
+        color={color}
+        transparent={opacity < 1.0}
+        opacity={opacity}
+      />
+    </mesh>
+  );
+}
+
 /** Helper for visualizing camera frustums. */
 export const CameraFrustumComponent = React.forwardRef<
   THREE.Group,
@@ -131,23 +187,57 @@ export const CameraFrustumComponent = React.forwardRef<
 
   // Separate opacities: line_opacity for lines, opacity for image and filled faces
   // Type assertion needed until auto-generated types are updated
-  const props = message.props as typeof message.props & { line_opacity?: number | null };
+  const props = message.props as typeof message.props & { 
+    line_opacity?: number | null;
+    line_style?: "flat" | "tube";
+    line_radius?: number;
+  };
   const lineOpacity = props.line_opacity ?? props.opacity ?? 1.0;
   const imageOpacity = props.opacity ?? 1.0;
+  const lineStyle = props.line_style ?? "flat";
+  const lineRadius = props.line_radius ?? 0.01;
+
+  // Generate line segments for tube rendering
+  const lineSegments = React.useMemo(() => {
+    const segments: Array<[[number, number, number], [number, number, number]]> = [];
+    // frustumPoints is an array of points defining line segments
+    // Every two consecutive points form a line segment
+    for (let i = 0; i < frustumPoints.length; i += 2) {
+      if (i + 1 < frustumPoints.length) {
+        segments.push([frustumPoints[i], frustumPoints[i + 1]]);
+      }
+    }
+    return segments;
+  }, [frustumPoints]);
 
   return (
     <group ref={ref}>
-      {/* Wireframe lines - use line_opacity */}
-      <Line
-        points={frustumPoints}
-        color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
-        lineWidth={
-          isHovered ? 1.5 * message.props.line_width : message.props.line_width
-        }
-        segments
-        opacity={lineOpacity}
-        transparent={lineOpacity < 1.0}
-      />
+      {/* Wireframe lines - flat or tube based on line_style */}
+      {lineStyle === "flat" ? (
+        <Line
+          points={frustumPoints}
+          color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
+          lineWidth={
+            isHovered ? 1.5 * message.props.line_width : message.props.line_width
+          }
+          segments
+          opacity={lineOpacity}
+          transparent={lineOpacity < 1.0}
+        />
+      ) : (
+        <>
+          {lineSegments.map((segment, idx) => (
+            <LineTube
+              key={idx}
+              start={segment[0]}
+              end={segment[1]}
+              radius={lineRadius}
+              color={isHovered ? 0xfbff00 : color}
+              opacity={lineOpacity}
+            />
+          ))}
+        </>
+      )}
 
       {/* Filled faces - only for "filled" variant, use image opacity */}
       {message.props.variant === "filled" && geometry && (

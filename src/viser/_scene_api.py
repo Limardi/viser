@@ -969,6 +969,8 @@ class SceneApi:
         color: RgbTupleOrArray = (20, 20, 20),
         opacity: float | None = None,
         line_opacity: float | None = None,
+        line_style: Literal["flat", "tube"] = "flat",
+        line_radius: float = 0.01,
         image: np.ndarray | None = None,
         format: Literal["auto", "png", "jpeg"] = "auto",
         jpeg_quality: int | None = None,
@@ -999,6 +1001,9 @@ class SceneApi:
             opacity: Opacity of the frustum image and filled faces (0.0-1.0). None means fully opaque.
             line_opacity: Opacity of the frustum line segments (0.0-1.0). None means fully opaque. 
                 If not provided, defaults to the `opacity` value.
+            line_style: Style of the frustum lines. 'flat' renders as 2D screen-space lines, 
+                'tube' renders as 3D cylindrical pipes/tubes.
+            line_radius: Radius of the line tubes when line_style is 'tube'. Ignored when line_style is 'flat'.
             image: Optional image to be displayed on the frustum.
             format: Format to transport and display the image using. 'auto' will use PNG for RGBA images and JPEG for RGB.
             jpeg_quality: Quality of the jpeg image (if jpeg format is used).
@@ -1036,6 +1041,8 @@ class SceneApi:
                 color=_encode_rgb(color),
                 opacity=opacity,
                 line_opacity=resolved_line_opacity,
+                line_style=line_style,
+                line_radius=line_radius,
                 _format=resolved_format,
                 _image_data=binary,
                 cast_shadow=cast_shadow,
