@@ -26,8 +26,8 @@ function LineTube({
     const direction = new THREE.Vector3().subVectors(endVec, startVec);
     const length = direction.length();
     
-    // Create cylinder geometry
-    return new THREE.CylinderGeometry(radius, radius, length, 8);
+    // Create cylinder geometry with more segments for smoother appearance
+    return new THREE.CylinderGeometry(radius, radius, length, 8, 1);
   }, [start, end, radius]);
 
   const position = React.useMemo(() => {
@@ -51,12 +51,21 @@ function LineTube({
     return new THREE.Euler().setFromQuaternion(quaternion);
   }, [start, end]);
 
+  // Clean up geometry on unmount
+  React.useEffect(() => {
+    return () => {
+      geometry.dispose();
+    };
+  }, [geometry]);
+
   return (
     <mesh geometry={geometry} position={position} rotation={rotation}>
       <meshBasicMaterial
+        attach="material"
         color={color}
-        transparent={opacity < 1.0}
+        transparent={true}
         opacity={opacity}
+        depthWrite={false}
       />
     </mesh>
   );
