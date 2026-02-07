@@ -120,8 +120,9 @@ export const CameraFrustumComponent = React.forwardRef<
     }
   });
 
-  const frustumPoints: [number, number, number][] = [
-    // Rectangle.
+  // Split frustum into separate parts for different colors
+  const framePoints: [number, number, number][] = [
+    // Rectangle at the far plane.
     [-1, -1, 1],
     [1, -1, 1],
     [1, -1, 1],
@@ -130,16 +131,21 @@ export const CameraFrustumComponent = React.forwardRef<
     [-1, 1, 1],
     [-1, 1, 1],
     [-1, -1, 1],
-    // Lines to origin.
+  ].map((xyz) => [xyz[0] * x, xyz[1] * y, xyz[2] * z]);
+
+  const rayPoints: [number, number, number][] = [
+    // Lines from corners to origin.
     [-1, -1, 1],
     [0, 0, 0],
     [0, 0, 0],
     [1, -1, 1],
-    // Lines to origin.
     [-1, 1, 1],
     [0, 0, 0],
     [0, 0, 0],
     [1, 1, 1],
+  ].map((xyz) => [xyz[0] * x, xyz[1] * y, xyz[2] * z]);
+
+  const upIndicatorPoints: [number, number, number][] = [
     // Up direction indicator.
     // Don't overlap with the image if the image is present.
     [0.0, -1.2, 1.0],
@@ -200,44 +206,135 @@ export const CameraFrustumComponent = React.forwardRef<
     line_opacity?: number | null;
     line_style?: "flat" | "tube";
     line_radius?: number;
+    frame_color?: [number, number, number];
+    ray_color?: [number, number, number];
+    frame_opacity?: number | null;
+    ray_opacity?: number | null;
   };
   const lineOpacity = props.line_opacity ?? props.opacity ?? 1.0;
   const imageOpacity = props.opacity ?? 1.0;
   const lineStyle = props.line_style ?? "flat";
   const lineRadius = props.line_radius ?? 0.01;
+  
+  // Separate opacities for frame and rays
+  const frameOpacity = props.frame_opacity ?? lineOpacity;
+  const rayOpacity = props.ray_opacity ?? lineOpacity;
+  
+  // Colors for different parts
+  const frameColor = props.frame_color 
+    ? new THREE.Color().setRGB(
+        props.frame_color[0] / 255,
+        props.frame_color[1] / 255,
+        props.frame_color[2] / 255,
+      )
+    : color;
+  
+  const rayColor = props.ray_color
+    ? new THREE.Color().setRGB(
+        props.ray_color[0] / 255,
+        props.ray_color[1] / 255,
+        props.ray_color[2] / 255,
+      )
+    : color;
 
   // Generate line segments for tube rendering
-  const lineSegments = React.useMemo(() => {
+  const frameSegments = React.useMemo(() => {
     const segments: Array<[[number, number, number], [number, number, number]]> = [];
-    // frustumPoints is an array of points defining line segments
-    // Every two consecutive points form a line segment
-    for (let i = 0; i < frustumPoints.length; i += 2) {
-      if (i + 1 < frustumPoints.length) {
-        segments.push([frustumPoints[i], frustumPoints[i + 1]]);
+    for (let i = 0; i < framePoints.length; i += 2) {
+      if (i + 1 < framePoints.length) {
+        segments.push([framePoints[i], framePoints[i + 1]]);
       }
     }
     return segments;
-  }, [frustumPoints]);
+  }, [framePoints]);
+
+  const raySegments = React.useMemo(() => {
+    const segments: Array<[[number, number, number], [number, number, number]]> = [];
+    for (let i = 0; i < rayPoints.length; i += 2) {
+      if (i + 1 < rayPoints.length) {
+        segments.push([rayPoints[i], rayPoints[i + 1]]);
+      }
+    }
+    return segments;
+  }, [rayPoints]);
+
+  const upIndicatorSegments = React.useMemo(() => {
+    const segments: Array<[[number, number, number], [number, number, number]]> = [];
+    for (let i = 0; i < upIndicatorPoints.length; i += 2) {
+      if (i + 1 < upIndicatorPoints.length) {
+        segments.push([upIndicatorPoints[i], upIndicatorPoints[i + 1]]);
+      }
+    }
+    return segments;
+  }, [upIndicatorPoints]);
 
   return (
     <group ref={ref}>
       {/* Wireframe lines - flat or tube based on line_style */}
       {lineStyle === "flat" ? (
-        <Line
-          points={frustumPoints}
-          color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
-          lineWidth={
-            isHovered ? 1.5 * message.props.line_width : message.props.line_width
-          }
-          segments
-          opacity={lineOpacity}
-          transparent={lineOpacity < 1.0}
-        />
+        <>
+          {/* Frame lines */}
+          <Line
+            points={framePoints}
+            color={isHovered ? 0xfbff00 : rgbToInt(props.frame_color ?? message.props.color)}
+            lineWidth={
+              isHovered ? 1.5 * message.props.line_width : message.props.line_width
+            }
+            segments
+            opacity={frameOpacity}
+            transparent={frameOpacity < 1.0}
+          />
+          {/* Ray lines */}
+          <Line
+            points={rayPoints}
+            color={isHovered ? 0xfbff00 : rgbToInt(props.ray_color ?? message.props.color)}
+            lineWidth={
+              isHovered ? 1.5 * message.props.line_width : message.props.line_width
+            }
+            segments
+            opacity={rayOpacity}
+            transparent={rayOpacity < 1.0}
+          />
+          {/* Up indicator */}
+          <Line
+            points={upIndicatorPoints}
+            color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
+            lineWidth={
+              isHovered ? 1.5 * message.props.line_width : message.props.line_width
+            }
+            segments
+            opacity={lineOpacity}
+            transparent={lineOpacity < 1.0}
+          />
+        </>
       ) : (
         <>
-          {lineSegments.map((segment, idx) => (
+          {/* Frame tubes */}
+          {frameSegments.map((segment, idx) => (
             <LineTube
-              key={idx}
+              key={`frame-${idx}`}
+              start={segment[0]}
+              end={segment[1]}
+              radius={lineRadius}
+              color={isHovered ? 0xfbff00 : frameColor}
+              opacity={frameOpacity}
+            />
+          ))}
+          {/* Ray tubes */}
+          {raySegments.map((segment, idx) => (
+            <LineTube
+              key={`ray-${idx}`}
+              start={segment[0]}
+              end={segment[1]}
+              radius={lineRadius}
+              color={isHovered ? 0xfbff00 : rayColor}
+              opacity={rayOpacity}
+            />
+          ))}
+          {/* Up indicator tubes */}
+          {upIndicatorSegments.map((segment, idx) => (
+            <LineTube
+              key={`up-${idx}`}
               start={segment[0]}
               end={segment[1]}
               radius={lineRadius}
