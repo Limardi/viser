@@ -75,6 +75,36 @@ frustum3 = server.scene.add_camera_frustum(
 )
 
 
+# Test 4: Clickable line segments (simple yellow square on the ground)
+edge_points = np.array(
+    [
+        [[-1.0, -1.0, 0.0], [1.0, -1.0, 0.0]],
+        [[1.0, -1.0, 0.0], [1.0, 1.0, 0.0]],
+        [[1.0, 1.0, 0.0], [-1.0, 1.0, 0.0]],
+        [[-1.0, 1.0, 0.0], [-1.0, -1.0, 0.0]],
+    ],
+    dtype=np.float32,
+)
+
+edge_colors = np.full((4, 2, 3), fill_value=[255, 255, 0], dtype=np.uint8)  # yellow
+
+clickable_edges = server.scene.add_line_segments(
+    "/clickable_edges",
+    points=edge_points,
+    colors=edge_colors,
+    line_width=4.0,
+)
+
+
+@clickable_edges.on_click
+def _on_edges_click(event: viser.SceneNodePointerEvent[viser.LineSegmentsHandle]) -> None:  # type: ignore[name-defined]
+    print(
+        "[clickable_edges] Click detected:",
+        f"screen_pos={event.screen_pos}",
+        f"ray_origin={event.ray_origin}",
+    )
+
+
 print("=" * 70)
 print("Camera Frustum Test - SEPARATE FRAME & RAY COLORS + OPACITIES")
 print("=" * 70)

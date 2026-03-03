@@ -592,7 +592,7 @@ class GridHandle(
 
 
 class LineSegmentsHandle(
-    SceneNodeHandle,
+    _ClickableSceneNodeHandle,
     _messages.LineSegmentsProps,
 ):
     """Handle for line segments objects."""
