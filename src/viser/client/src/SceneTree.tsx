@@ -59,6 +59,50 @@ function rgbToInt(rgb: [number, number, number]): number {
   return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
 }
 
+/** Line segments that respond visually to hover, similar to camera frustums. */
+function HoverableLineSegments({
+  points,
+  colors,
+  lineWidth,
+  opacity,
+}: {
+  points: Float32Array;
+  colors: Uint8Array;
+  lineWidth: number;
+  opacity?: number;
+}) {
+  const hoverContext = React.useContext(HoverableContext);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  useFrame(() => {
+    if (
+      hoverContext !== null &&
+      hoverContext.state.current.isHovered !== isHovered
+    ) {
+      setIsHovered(hoverContext.state.current.isHovered);
+    }
+  });
+
+  const baseOpacity = opacity ?? 1;
+  const effectiveLineWidth = isHovered ? lineWidth * 1.5 : lineWidth;
+
+  // When hovered, switch to a uniform highlight color and ignore vertex colors.
+  // When not hovered, use the provided per-vertex colors.
+  const useVertexColors = !isHovered;
+
+  return (
+    <Line
+      points={points}
+      lineWidth={effectiveLineWidth}
+      vertexColors={useVertexColors ? colors : undefined}
+      color={isHovered ? 0xfbff00 : 0xffffff}
+      segments
+      opacity={baseOpacity}
+      transparent={baseOpacity < 1}
+    />
+  );
+}
+
 /** Type corresponding to a zustand-style useSceneTree hook. */
 export type UseSceneTree = ReturnType<typeof useSceneTreeState>;
 
@@ -502,16 +546,11 @@ function createObjectFactory(
           );
           return (
             <group ref={ref}>
-              <Line
+              <HoverableLineSegments
                 points={pointsArray}
+                colors={colorArray}
                 lineWidth={message.props.line_width}
-                vertexColors={colorArray}
-                segments={true}
-                  opacity={message.props.opacity ?? 1}
-                  transparent={
-                    message.props.opacity !== undefined &&
-                    message.props.opacity < 1
-                  }
+                opacity={message.props.opacity ?? 1}
               />
               {children}
             </group>
