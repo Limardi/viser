@@ -2114,6 +2114,8 @@ class SceneApi:
         cast_shadow: bool = True,
         receive_shadow: bool | float = True,
         show_outline: bool = False,
+        image_frame_color: Tuple[int, int, int] | None = None,
+        image_frame_width: float = 2.0,
         wxyz: tuple[float, float, float, float] | np.ndarray = (1.0, 0.0, 0.0, 0.0),
         position: tuple[float, float, float] | np.ndarray = (0.0, 0.0, 0.0),
         visible: bool = True,
@@ -2134,6 +2136,9 @@ class SceneApi:
                 (0-1), shadows are rendered with a fixed opacity regardless of
                 lighting conditions.
             show_outline: Whether to show an outline frame around the image.
+            image_frame_color: Color of the outline frame as RGB integers (0-255).
+                Defaults to yellow (255, 255, 0) if None.
+            image_frame_width: Width of the outline frame lines. Defaults to 2.0.
             wxyz: Quaternion rotation to parent frame from local frame (R_pl).
             position: Translation from parent frame to local frame (t_pl).
             visible: Whether or not this image is initially visible.
@@ -2154,6 +2159,8 @@ class SceneApi:
                 cast_shadow=cast_shadow,
                 receive_shadow=receive_shadow,
                 show_outline=show_outline,
+                image_frame_color=_encode_rgb(image_frame_color) if image_frame_color is not None else None,
+                image_frame_width=image_frame_width,
             ),
         )
         handle = ImageHandle._make(self, message, name, wxyz, position, visible)

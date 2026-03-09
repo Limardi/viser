@@ -507,14 +507,18 @@ export const ViserImage = React.forwardRef<
   const h = message.props.render_height / 2;
 
   // Rectangle outline as line segments, same approach as the camera frustum frame.
-  // The image is rotated by PI around X, so we draw the outline in that same
-  // local space (the Line is a sibling of the mesh inside the same group).
   const outlinePoints: [number, number, number][] = [
     [-w, -h, 0], [ w, -h, 0],
     [ w, -h, 0], [ w,  h, 0],
     [ w,  h, 0], [-w,  h, 0],
     [-w,  h, 0], [-w, -h, 0],
   ];
+
+  const frameColorRgb = message.props.image_frame_color;
+  const frameColor = frameColorRgb
+    ? (frameColorRgb[0] << 16) | (frameColorRgb[1] << 8) | frameColorRgb[2]
+    : 0xfbff00; // default yellow
+  const frameWidth = message.props.image_frame_width ?? 2.0;
 
   return (
     <group ref={ref}>
@@ -539,8 +543,8 @@ export const ViserImage = React.forwardRef<
       {showOutline && (
         <Line
           points={outlinePoints}
-          color={0xfbff00}
-          lineWidth={2}
+          color={frameColor}
+          lineWidth={frameWidth}
           segments
           rotation={new THREE.Euler(Math.PI, 0.0, 0.0)}
         />

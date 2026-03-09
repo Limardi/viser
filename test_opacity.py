@@ -105,25 +105,40 @@ def _on_edges_click(event: viser.SceneNodePointerEvent[viser.LineSegmentsHandle]
     )
 
 
-# Test 5: Image with outline frame (always visible)
+# Test 5: Image with RED outline frame
 img_with_outline = server.scene.add_image(
     "/image_with_outline",
     image=images[0],
     render_width=1.5,
     render_height=1.0,
-    show_outline=True,  # Show yellow outline frame
+    show_outline=True,
+    image_frame_color=(255, 0, 0),  # RED frame
+    image_frame_width=4.0,          # Thick lines
     position=(0, 3, 0),
     wxyz=(1.0, 0.0, 0.0, 0.0),
 )
 
-# Test 6: Image without outline (for comparison)
-img_without_outline = server.scene.add_image(
-    "/image_without_outline",
+# Test 6: Image with thin GREEN outline frame
+img_green_outline = server.scene.add_image(
+    "/image_green_outline",
     image=images[1],
     render_width=1.5,
     render_height=1.0,
-    show_outline=False,  # No outline (default)
+    show_outline=True,
+    image_frame_color=(0, 255, 0),  # GREEN frame
+    image_frame_width=1.5,          # Thin lines
     position=(2, 3, 0),
+    wxyz=(1.0, 0.0, 0.0, 0.0),
+)
+
+# Test 7: Image with default yellow outline (no color specified)
+img_default_outline = server.scene.add_image(
+    "/image_default_outline",
+    image=images[2],
+    render_width=1.5,
+    render_height=1.0,
+    show_outline=True,  # Default yellow, default width
+    position=(4, 3, 0),
     wxyz=(1.0, 0.0, 0.0, 0.0),
 )
 
@@ -153,11 +168,9 @@ print("     - Line style: TUBE")
 print()
 print("  4. Clickable yellow square on the ground")
 print()
-print("  5. Image WITH outline (LEFT, above):")
-print("     - Yellow outline frame always visible")
-print()
-print("  6. Image WITHOUT outline (RIGHT, above):")
-print("     - No outline (hover to see outline)")
+print("  5. Image with RED outline (thick, above left)")
+print("  6. Image with GREEN outline (thin, above center)")
+print("  7. Image with default YELLOW outline (above right)")
 print()
 print("KEY TEST: Each frustum part (frame/rays) should have")
 print("          DIFFERENT colors AND opacities!")

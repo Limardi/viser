@@ -1040,6 +1040,10 @@ class ImageProps:
     opacity regardless of lighting conditions. """
     show_outline: bool = False
     """Whether to show an outline frame around the image."""
+    image_frame_color: Optional[Tuple[int, int, int]] = None
+    """Color of the image outline frame as RGB integers. Defaults to yellow (255, 255, 0)."""
+    image_frame_width: float = 2.0
+    """Width of the image outline frame lines."""
 
 
 @dataclasses.dataclass
