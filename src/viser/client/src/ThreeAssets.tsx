@@ -1,4 +1,4 @@
-import { Instance, Instances, shaderMaterial } from "@react-three/drei";
+import { Instance, Instances, Line, shaderMaterial } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { OutlinesIfHovered } from "./OutlinesIfHovered";
 import React from "react";
@@ -6,7 +6,6 @@ import * as THREE from "three";
 import { ImageMessage, PointCloudMessage } from "./WebsocketMessages";
 import { BatchedMeshHoverOutlines } from "./mesh/BatchedMeshHoverOutlines";
 import { MeshBasicMaterial } from "three";
-import { Outlines } from "./Outlines";
 
 const originGeom = new THREE.SphereGeometry(1.0);
 
@@ -504,6 +503,19 @@ export const ViserImage = React.forwardRef<
     }
   }, [message.props._format, message.props._data]);
   const showOutline = message.props.show_outline ?? false;
+  const w = message.props.render_width / 2;
+  const h = message.props.render_height / 2;
+
+  // Rectangle outline as line segments, same approach as the camera frustum frame.
+  // The image is rotated by PI around X, so we draw the outline in that same
+  // local space (the Line is a sibling of the mesh inside the same group).
+  const outlinePoints: [number, number, number][] = [
+    [-w, -h, 0], [ w, -h, 0],
+    [ w, -h, 0], [ w,  h, 0],
+    [ w,  h, 0], [-w,  h, 0],
+    [-w,  h, 0], [-w, -h, 0],
+  ];
+
   return (
     <group ref={ref}>
       <mesh
@@ -511,15 +523,6 @@ export const ViserImage = React.forwardRef<
         castShadow={message.props.cast_shadow}
         receiveShadow={message.props.receive_shadow === true}
       >
-        {showOutline && (
-          <Outlines
-            thickness={10}
-            screenspace={true}
-            color={0xfbff00}
-            opacity={0.8}
-            transparent={true}
-          />
-        )}
         {!showOutline && <OutlinesIfHovered />}
         <planeGeometry
           attach="geometry"
@@ -533,6 +536,15 @@ export const ViserImage = React.forwardRef<
           toneMapped={false}
         />
       </mesh>
+      {showOutline && (
+        <Line
+          points={outlinePoints}
+          color={0xfbff00}
+          lineWidth={2}
+          segments
+          rotation={new THREE.Euler(Math.PI, 0.0, 0.0)}
+        />
+      )}
       {children}
     </group>
   );
