@@ -105,12 +105,40 @@ def _on_edges_click(event: viser.SceneNodePointerEvent[viser.LineSegmentsHandle]
     )
 
 
+# Test 5: Image with hover outline (should show yellow outline on hover)
+# Scale the image to a reasonable size (use aspect ratio)
+img_height = images[0].shape[0]
+img_width = images[0].shape[1]
+aspect_ratio = img_width / img_height
+# Use a base height and calculate width to maintain aspect ratio
+base_height = 1.0
+base_width = base_height * aspect_ratio
+
+test_image = server.scene.add_image(
+    "/test_image",
+    image=images[0],
+    render_width=base_width,
+    render_height=base_height,
+    position=(0, 0, 2),  # Position above the ground
+    wxyz=(1.0, 0.0, 0.0, 0.0),  # No rotation
+)
+
+
+@test_image.on_click
+def _on_image_click(event: viser.SceneNodePointerEvent[viser.ImageHandle]) -> None:  # type: ignore[name-defined]
+    print(
+        "[test_image] Click detected:",
+        f"screen_pos={event.screen_pos}",
+        f"ray_origin={event.ray_origin}",
+    )
+
+
 print("=" * 70)
 print("Camera Frustum Test - SEPARATE FRAME & RAY COLORS + OPACITIES")
 print("=" * 70)
 print("Test server running at http://localhost:8080")
 print()
-print("You should see 3 camera frustums:")
+print("You should see:")
 print()
 print("  1. MULTI-COLOR frustum (LEFT):")
 print("     - Frame: RED rectangle (opacity: 1.0)")
@@ -128,8 +156,18 @@ print("  3. SINGLE-COLOR frustum (RIGHT):")
 print("     - All lines: MAGENTA (backward compatibility)")
 print("     - Line style: TUBE")
 print()
+print("  4. CLICKABLE LINE SEGMENTS (yellow square on ground):")
+print("     - Yellow square at z=0")
+print("     - Clickable with hover highlight")
+print()
+print("  5. IMAGE WITH HOVER OUTLINE (above ground):")
+print("     - Image positioned at (0, 0, 2)")
+print("     - Hover over it to see YELLOW outline frame!")
+print("     - Also clickable")
+print()
 print("KEY TEST: Each frustum part (frame/rays) should have")
 print("          DIFFERENT colors AND opacities!")
+print("          Image should show yellow outline on hover!")
 print("=" * 70)
 
 # Add GUI elements to the right panel (root container - default)

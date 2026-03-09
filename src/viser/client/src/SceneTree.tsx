@@ -38,6 +38,7 @@ import {
   InstancedAxes,
   PointCloud,
   ViserImage,
+  ViserImageWithHoverOutline,
 } from "./ThreeAssets";
 import { CameraFrustumComponent } from "./CameraFrustumVariants";
 import { SceneNodeMessage } from "./WebsocketMessages";
@@ -500,9 +501,9 @@ function createObjectFactory(
     case "ImageMessage": {
       return {
         makeObject: (ref, children) => (
-          <ViserImage ref={ref} {...message}>
+          <ViserImageWithHoverOutline ref={ref} {...message}>
             {children}
-          </ViserImage>
+          </ViserImageWithHoverOutline>
         ),
       };
     }
