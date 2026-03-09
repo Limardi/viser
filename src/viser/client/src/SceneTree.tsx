@@ -38,7 +38,6 @@ import {
   InstancedAxes,
   PointCloud,
   ViserImage,
-  ViserImageWithHoverOutline,
 } from "./ThreeAssets";
 import { CameraFrustumComponent } from "./CameraFrustumVariants";
 import { SceneNodeMessage } from "./WebsocketMessages";
@@ -501,9 +500,9 @@ function createObjectFactory(
     case "ImageMessage": {
       return {
         makeObject: (ref, children) => (
-          <ViserImageWithHoverOutline ref={ref} {...message}>
+          <ViserImage ref={ref} {...message}>
             {children}
-          </ViserImageWithHoverOutline>
+          </ViserImage>
         ),
       };
     }
@@ -551,7 +550,7 @@ function createObjectFactory(
                 points={pointsArray}
                 colors={colorArray}
                 lineWidth={message.props.line_width}
-                opacity={message.props.opacity ?? 1}
+                  opacity={message.props.opacity ?? 1}
               />
               {children}
             </group>

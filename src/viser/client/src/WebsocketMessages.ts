@@ -374,6 +374,7 @@ export interface ImageMessage {
     render_height: number;
     cast_shadow: boolean;
     receive_shadow: boolean | number;
+    show_outline?: boolean;
   };
 }
 /** Message from server->client carrying line segments information.

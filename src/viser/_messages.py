@@ -1038,6 +1038,8 @@ class ImageProps:
     """Whether to receive shadows. If True, receives shadows normally. If
     False, no shadows. If a float (0-1), shadows are rendered with a fixed
     opacity regardless of lighting conditions. """
+    show_outline: bool = False
+    """Whether to show an outline frame around the image."""
 
 
 @dataclasses.dataclass

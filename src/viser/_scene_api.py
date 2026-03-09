@@ -2113,6 +2113,7 @@ class SceneApi:
         jpeg_quality: int | None = None,
         cast_shadow: bool = True,
         receive_shadow: bool | float = True,
+        show_outline: bool = False,
         wxyz: tuple[float, float, float, float] | np.ndarray = (1.0, 0.0, 0.0, 0.0),
         position: tuple[float, float, float] | np.ndarray = (0.0, 0.0, 0.0),
         visible: bool = True,
@@ -2132,6 +2133,7 @@ class SceneApi:
                 receives shadows normally. If False, no shadows. If a float
                 (0-1), shadows are rendered with a fixed opacity regardless of
                 lighting conditions.
+            show_outline: Whether to show an outline frame around the image.
             wxyz: Quaternion rotation to parent frame from local frame (R_pl).
             position: Translation from parent frame to local frame (t_pl).
             visible: Whether or not this image is initially visible.
@@ -2151,6 +2153,7 @@ class SceneApi:
                 render_height=render_height,
                 cast_shadow=cast_shadow,
                 receive_shadow=receive_shadow,
+                show_outline=show_outline,
             ),
         )
         handle = ImageHandle._make(self, message, name, wxyz, position, visible)

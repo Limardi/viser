@@ -503,6 +503,7 @@ export const ViserImage = React.forwardRef<
       });
     }
   }, [message.props._format, message.props._data]);
+  const showOutline = message.props.show_outline ?? false;
   return (
     <group ref={ref}>
       <mesh
@@ -510,76 +511,16 @@ export const ViserImage = React.forwardRef<
         castShadow={message.props.cast_shadow}
         receiveShadow={message.props.receive_shadow === true}
       >
-        <OutlinesIfHovered />
-        <planeGeometry
-          attach="geometry"
-          args={[message.props.render_width, message.props.render_height]}
-        />
-        <meshBasicMaterial
-          attach="material"
-          transparent={true}
-          side={THREE.DoubleSide}
-          map={imageTexture}
-          toneMapped={false}
-        />
-      </mesh>
-      {children}
-    </group>
-  );
-});
-
-/** Image component with hover outline that works regardless of clickability. */
-export const ViserImageWithHoverOutline = React.forwardRef<
-  THREE.Group,
-  ImageMessage & { children?: React.ReactNode }
->(function ViserImageWithHoverOutline({ children, ...message }, ref) {
-  const [imageTexture, setImageTexture] = React.useState<THREE.Texture>();
-  const [isHovered, setIsHovered] = React.useState(false);
-  const outlineRef = React.useRef<THREE.Group>(null);
-
-  React.useEffect(() => {
-    if (message.props._format !== null && message.props._data !== null) {
-      const image_url = URL.createObjectURL(
-        new Blob([message.props._data], {
-          type: "image/" + message.props._format,
-        }),
-      );
-      new THREE.TextureLoader().load(image_url, (texture) => {
-        setImageTexture(texture);
-        URL.revokeObjectURL(image_url);
-      });
-    }
-  }, [message.props._format, message.props._data]);
-
-  React.useEffect(() => {
-    if (outlineRef.current !== null) {
-      outlineRef.current.visible = isHovered;
-    }
-  }, [isHovered]);
-
-  return (
-    <group ref={ref}>
-      <mesh
-        rotation={new THREE.Euler(Math.PI, 0.0, 0.0)}
-        castShadow={message.props.cast_shadow}
-        receiveShadow={message.props.receive_shadow === true}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setIsHovered(true);
-        }}
-        onPointerOut={(e) => {
-          e.stopPropagation();
-          setIsHovered(false);
-        }}
-      >
-        <Outlines
-          ref={outlineRef}
-          thickness={10}
-          screenspace={true}
-          color={0xfbff00}
-          opacity={0.8}
-          transparent={true}
-        />
+        {showOutline && (
+          <Outlines
+            thickness={10}
+            screenspace={true}
+            color={0xfbff00}
+            opacity={0.8}
+            transparent={true}
+          />
+        )}
+        {!showOutline && <OutlinesIfHovered />}
         <planeGeometry
           attach="geometry"
           args={[message.props.render_width, message.props.render_height]}
