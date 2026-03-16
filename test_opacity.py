@@ -37,42 +37,42 @@ frustum1 = server.scene.add_camera_frustum(
     position=(0, 0, 0),
 )
 
-# Test 2: Frustum with 3D tube lines - different frame and ray colors AND opacities
-img2 = images[1]
-frustum2 = server.scene.add_camera_frustum(
-    "/camera2_tube_lines",
-    fov=np.pi / 3,
-    aspect=16 / 9,
-    scale=0.8,
-    color=(255, 255, 255),  # Base color
-    frame_color=(0, 255, 0),  # GREEN frame rectangle
-    ray_color=(255, 165, 0),  # ORANGE rays/cone
-    frame_opacity=0.7,  # Frame opacity - semi-transparent
-    ray_opacity=1.0,  # Ray opacity - fully opaque
-    opacity=0.8,  # Image opacity - slightly transparent
-    line_style="tube",  # 3D tube/pipe lines
-    line_radius=0.02,  # Radius of the tubes
-    image=img2,
-    variant="wireframe",
-    position=(4, 0, 0),
-)
+# # Test 2: Frustum with 3D tube lines - different frame and ray colors AND opacities
+# img2 = images[1]
+# frustum2 = server.scene.add_camera_frustum(
+#     "/camera2_tube_lines",
+#     fov=np.pi / 3,
+#     aspect=16 / 9,
+#     scale=0.8,
+#     color=(255, 255, 255),  # Base color
+#     frame_color=(0, 255, 0),  # GREEN frame rectangle
+#     ray_color=(255, 165, 0),  # ORANGE rays/cone
+#     frame_opacity=0.7,  # Frame opacity - semi-transparent
+#     ray_opacity=1.0,  # Ray opacity - fully opaque
+#     opacity=0.8,  # Image opacity - slightly transparent
+#     line_style="tube",  # 3D tube/pipe lines
+#     line_radius=0.02,  # Radius of the tubes
+#     image=img2,
+#     variant="wireframe",
+#     position=(4, 0, 0),
+# )
 
-# Test 3: Frustum without separate colors (backward compatibility)
-img3 = images[2]
-frustum3 = server.scene.add_camera_frustum(
-    "/camera3_single_color",
-    fov=np.pi / 3,
-    aspect=16 / 9,
-    scale=0.8,
-    color=(255, 0, 255),  # Magenta - all lines same color
-    opacity=1.0,
-    line_opacity=1.0,
-    line_style="tube",
-    line_radius=0.015,
-    image=img3,
-    variant="wireframe",
-    position=(8, 0, 0),
-)
+# # Test 3: Frustum without separate colors (backward compatibility)
+# img3 = images[2]
+# frustum3 = server.scene.add_camera_frustum(
+#     "/camera3_single_color",
+#     fov=np.pi / 3,
+#     aspect=16 / 9,
+#     scale=0.8,
+#     color=(255, 0, 255),  # Magenta - all lines same color
+#     opacity=1.0,
+#     line_opacity=1.0,
+#     line_style="tube",
+#     line_radius=0.015,
+#     image=img3,
+#     variant="wireframe",
+#     position=(8, 0, 0),
+# )
 
 
 # Test 4: Clickable line segments (simple yellow square on the ground)
@@ -106,53 +106,74 @@ def _on_edges_click(event: viser.SceneNodePointerEvent[viser.LineSegmentsHandle]
 
 
 # Test 5: Image with RED outline frame
-img_with_outline = server.scene.add_image(
-    "/image_with_outline",
-    image=images[0],
-    render_width=1.5,
-    render_height=1.0,
-    show_outline=True,
-    image_frame_color=(255, 0, 0),  # RED frame
-    image_frame_width=4.0,          # Thick lines
+# img_with_outline = server.scene.add_image(
+#     "/image_with_outline",
+#     image=images[0],
+#     render_width=1.5,
+#     render_height=1.0,
+#     show_outline=True,
+#     image_frame_color=(255, 0, 0),  # RED frame
+#     image_frame_width=4.0,          # Thick lines
+#     position=(0, 3, 0),
+#     wxyz=(1.0, 0.0, 0.0, 0.0),
+# )
+
+# # Test 6: Image with thin GREEN outline frame
+# img_green_outline = server.scene.add_image(
+#     "/image_green_outline",
+#     image=images[1],
+#     render_width=1.5,
+#     render_height=1.0,
+#     show_outline=True,
+#     image_frame_color=(0, 255, 0),  # GREEN frame
+#     image_frame_width=1.5,          # Thin lines
+#     position=(2, 3, 0),
+#     wxyz=(1.0, 0.0, 0.0, 0.0),
+# )
+
+# # Test 7: Image with default yellow outline (no color specified)
+# img_default_outline = server.scene.add_image(
+#     "/image_default_outline",
+#     image=images[2],
+#     render_width=1.5,
+#     render_height=1.0,
+#     show_outline=True,  # Default yellow, default width
+#     position=(4, 3, 0),
+#     wxyz=(1.0, 0.0, 0.0, 0.0),
+# )
+
+# Side-by-side comparison: wireframe vs image_only (same image, same params)
+shared_fov = np.pi / 3
+shared_aspect = 16 / 9
+shared_scale = 0.8
+shared_color = (255, 0, 0)
+shared_image = images[0]
+
+# Left: wireframe variant (full frustum)
+frustum_wireframe = server.scene.add_camera_frustum(
+    "/compare_wireframe",
+    fov=shared_fov,
+    aspect=shared_aspect,
+    scale=shared_scale,
+    color=shared_color,
+    image=shared_image,
+    variant="wireframe",
     position=(0, 3, 0),
-    wxyz=(1.0, 0.0, 0.0, 0.0),
 )
 
-# Test 6: Image with thin GREEN outline frame
-img_green_outline = server.scene.add_image(
-    "/image_green_outline",
-    image=images[1],
-    render_width=1.5,
-    render_height=1.0,
-    show_outline=True,
-    image_frame_color=(0, 255, 0),  # GREEN frame
-    image_frame_width=1.5,          # Thin lines
-    position=(2, 3, 0),
-    wxyz=(1.0, 0.0, 0.0, 0.0),
-)
-
-# Test 7: Image with default yellow outline (no color specified)
-img_default_outline = server.scene.add_image(
-    "/image_default_outline",
-    image=images[2],
-    render_width=1.5,
-    render_height=1.0,
-    show_outline=True,  # Default yellow, default width
-    position=(4, 3, 0),
-    wxyz=(1.0, 0.0, 0.0, 0.0),
-)
-
-# Test 8: Camera frustum with image_only variant
-# Image is centered at the camera position, no frustum lines shown.
+# Right: image_only variant with show_frame + show_axes
 frustum_image_only = server.scene.add_camera_frustum(
-    "/camera_image_only",
-    fov=np.pi / 3,
-    aspect=16 / 9,
-    scale=0.8,
-    color=(255, 255, 255),
-    image=images[0],
+    "/compare_image_only",
+    fov=shared_fov,
+    aspect=shared_aspect,
+    scale=shared_scale,
+    color=shared_color,
+    frame_color=shared_color,
+    image=shared_image,
     variant="image_only",
-    position=(6, 3, 0),
+    show_frame=True,
+    show_axes=True,
+    position=(3, 3, 0),
 )
 
 
@@ -184,7 +205,9 @@ print()
 print("  5. Image with RED outline (thick, above left)")
 print("  6. Image with GREEN outline (thin, above center)")
 print("  7. Image with default YELLOW outline (above right)")
-print("  8. Camera frustum 'image_only' - image at camera origin, no frustum lines")
+print("  8. Camera frustum 'image_only' + show_frame=True + show_axes=True")
+print("  9. Camera frustum 'image_only' + show_frame=True + show_axes=False (frame only)")
+print("  10. Camera frustum 'image_only' + show_frame=False + show_axes=True (axes only)")
 print()
 print("KEY TEST: Each frustum part (frame/rays) should have")
 print("          DIFFERENT colors AND opacities!")
@@ -320,18 +343,53 @@ def _(_):
     frustum2.ray_opacity = ray_opacity_value
     print(f"Updated ray opacity to: {ray_opacity_value:.2f}")
 
-reset_button = server.gui.add_button("Reset Camera")
-@reset_button.on_click
-def _(_):
-    print("Reset camera button clicked!")
-    # You can add camera reset logic here
+server.gui.add_markdown("### Side-by-Side Controls")
 
-wireframe_checkbox = server.gui.add_checkbox("Show Wireframe", initial_value=True)
-@wireframe_checkbox.on_update
+show_frame_checkbox = server.gui.add_checkbox("Show Frame Border", initial_value=True)
+@show_frame_checkbox.on_update
 def _(_):
-    show_wireframe = wireframe_checkbox.value
-    print(f"Show wireframe: {show_wireframe}")
-    # You can add logic to toggle wireframe display here
+    val = show_frame_checkbox.value
+    frustum_image_only.show_frame = val
+    print(f"show_frame = {val}")
+
+show_axes_checkbox = server.gui.add_checkbox("Show Up Indicator", initial_value=True)
+@show_axes_checkbox.on_update
+def _(_):
+    val = show_axes_checkbox.value
+    frustum_image_only.show_axes = val
+    print(f"show_axes = {val}")
+
+frame_color_io = server.gui.add_rgb("Border Color", initial_value=(255, 0, 0))
+@frame_color_io.on_update
+def _(_):
+    val = frame_color_io.value
+    frustum_image_only.frame_color = val
+    frustum_wireframe.frame_color = val
+    print(f"frame_color = {val}")
+
+io_line_width = server.gui.add_slider("Line Width", min=0.5, max=8.0, initial_value=2.0, step=0.5)
+@io_line_width.on_update
+def _(_):
+    val = io_line_width.value
+    frustum_image_only.line_width = val
+    frustum_wireframe.line_width = val
+    print(f"line_width = {val}")
+
+io_scale = server.gui.add_slider("Scale", min=0.1, max=3.0, initial_value=0.8, step=0.1)
+@io_scale.on_update
+def _(_):
+    val = io_scale.value
+    frustum_image_only.scale = val
+    frustum_wireframe.scale = val
+    print(f"scale = {val}")
+
+io_opacity = server.gui.add_slider("Image Opacity", min=0.0, max=1.0, initial_value=1.0, step=0.01)
+@io_opacity.on_update
+def _(_):
+    val = io_opacity.value
+    frustum_image_only.opacity = val
+    frustum_wireframe.opacity = val
+    print(f"image opacity = {val:.2f}")
 
 # Add GUI elements to the left panel
 # Use 'with server.gui.container("left_panel"):' to add elements to the left panel

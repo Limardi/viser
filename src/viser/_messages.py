@@ -275,6 +275,10 @@ class CameraFrustumProps:
     """Variant of the frustum visualization. 'wireframe' shows lines only,
     'filled' adds semi-transparent faces, 'image_only' shows just the image
     centered at the camera origin without any frustum lines. """
+    show_frame: bool = False
+    """Whether to show the 4-edge rectangle border around the image plane. """
+    show_axes: bool = False
+    """Whether to show the camera up direction indicator line above the image plane. """
 
 
 @dataclasses.dataclass

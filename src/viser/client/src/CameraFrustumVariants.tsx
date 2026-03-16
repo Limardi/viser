@@ -200,40 +200,27 @@ export const CameraFrustumComponent = React.forwardRef<
     message.props.color[2] / 255,
   );
 
-  // Separate opacities: line_opacity for lines, opacity for image and filled faces
-  // Type assertion needed until auto-generated types are updated
-  const props = message.props as typeof message.props & { 
-    line_opacity?: number | null;
-    line_style?: "flat" | "tube";
-    line_radius?: number;
-    frame_color?: [number, number, number];
-    ray_color?: [number, number, number];
-    frame_opacity?: number | null;
-    ray_opacity?: number | null;
-  };
-  const lineOpacity = props.line_opacity ?? props.opacity ?? 1.0;
-  const imageOpacity = props.opacity ?? 1.0;
-  const lineStyle = props.line_style ?? "flat";
-  const lineRadius = props.line_radius ?? 0.01;
-  
-  // Separate opacities for frame and rays
-  const frameOpacity = props.frame_opacity ?? lineOpacity;
-  const rayOpacity = props.ray_opacity ?? lineOpacity;
-  
-  // Colors for different parts
-  const frameColor = props.frame_color 
+  const lineOpacity = message.props.line_opacity ?? message.props.opacity ?? 1.0;
+  const imageOpacity = message.props.opacity ?? 1.0;
+  const lineStyle = message.props.line_style ?? "flat";
+  const lineRadius = message.props.line_radius ?? 0.01;
+
+  const frameOpacity = message.props.frame_opacity ?? lineOpacity;
+  const rayOpacity = message.props.ray_opacity ?? lineOpacity;
+
+  const frameColor = message.props.frame_color
     ? new THREE.Color().setRGB(
-        props.frame_color[0] / 255,
-        props.frame_color[1] / 255,
-        props.frame_color[2] / 255,
+        message.props.frame_color[0] / 255,
+        message.props.frame_color[1] / 255,
+        message.props.frame_color[2] / 255,
       )
     : color;
-  
-  const rayColor = props.ray_color
+
+  const rayColor = message.props.ray_color
     ? new THREE.Color().setRGB(
-        props.ray_color[0] / 255,
-        props.ray_color[1] / 255,
-        props.ray_color[2] / 255,
+        message.props.ray_color[0] / 255,
+        message.props.ray_color[1] / 255,
+        message.props.ray_color[2] / 255,
       )
     : color;
 
@@ -269,85 +256,214 @@ export const CameraFrustumComponent = React.forwardRef<
   }, [upIndicatorPoints]);
 
   const isImageOnly = message.props.variant === "image_only";
+  const showFrame = message.props.show_frame;
+  const showAxes = message.props.show_axes;
+
+  // image_only: image always at origin so node position = image center.
+  // wireframe/filled: image at far plane.
+  const imageZ = isImageOnly ? 0.0 : z * 0.999999;
+
+  // Border slightly in front of image to avoid z-fighting.
+  const borderZ = isImageOnly ? -0.001 * z : z * 0.998;
+  const borderPoints: [number, number, number][] = [
+    [-x, -y, borderZ],
+    [x, -y, borderZ],
+    [x, -y, borderZ],
+    [x, y, borderZ],
+    [x, y, borderZ],
+    [-x, y, borderZ],
+    [-x, y, borderZ],
+    [-x, -y, borderZ],
+  ];
+
+  const borderSegments = React.useMemo(() => {
+    const segments: Array<
+      [[number, number, number], [number, number, number]]
+    > = [];
+    for (let i = 0; i < borderPoints.length; i += 2) {
+      if (i + 1 < borderPoints.length) {
+        segments.push([borderPoints[i], borderPoints[i + 1]]);
+      }
+    }
+    return segments;
+  }, [borderPoints]);
+
+  // Up indicator for show_axes: at origin z for image_only, at far plane for others.
+  const axesUpPoints: [number, number, number][] = isImageOnly
+    ? [
+        [0.0, -1.2, 0.0],
+        [0.0, -1.0, 0.0],
+      ].map((xyz) => [xyz[0] * x, xyz[1] * y, xyz[2]])
+    : upIndicatorPoints;
+
+  const axesUpSegments = React.useMemo(() => {
+    const segments: Array<
+      [[number, number, number], [number, number, number]]
+    > = [];
+    for (let i = 0; i < axesUpPoints.length; i += 2) {
+      if (i + 1 < axesUpPoints.length) {
+        segments.push([axesUpPoints[i], axesUpPoints[i + 1]]);
+      }
+    }
+    return segments;
+  }, [axesUpPoints]);
 
   return (
     <group ref={ref}>
-      {/* Wireframe lines - hidden in image_only mode */}
-      {!isImageOnly && (lineStyle === "flat" ? (
-        <>
-          {/* Frame lines */}
+      {/* Full frustum wireframe: frame + rays + up indicator.
+          Only for wireframe/filled variants (not image_only). */}
+      {!isImageOnly &&
+        (lineStyle === "flat" ? (
+          <>
+            <Line
+              points={framePoints}
+              color={
+                isHovered
+                  ? 0xfbff00
+                  : rgbToInt(
+                      message.props.frame_color ?? message.props.color,
+                    )
+              }
+              lineWidth={
+                isHovered
+                  ? 1.5 * message.props.line_width
+                  : message.props.line_width
+              }
+              segments
+              opacity={frameOpacity}
+              transparent={frameOpacity < 1.0}
+            />
+            <Line
+              points={rayPoints}
+              color={
+                isHovered
+                  ? 0xfbff00
+                  : rgbToInt(message.props.ray_color ?? message.props.color)
+              }
+              lineWidth={
+                isHovered
+                  ? 1.5 * message.props.line_width
+                  : message.props.line_width
+              }
+              segments
+              opacity={rayOpacity}
+              transparent={rayOpacity < 1.0}
+            />
+            <Line
+              points={upIndicatorPoints}
+              color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
+              lineWidth={
+                isHovered
+                  ? 1.5 * message.props.line_width
+                  : message.props.line_width
+              }
+              segments
+              opacity={lineOpacity}
+              transparent={lineOpacity < 1.0}
+            />
+          </>
+        ) : (
+          <>
+            {frameSegments.map((segment, idx) => (
+              <LineTube
+                key={`frame-${idx}`}
+                start={segment[0]}
+                end={segment[1]}
+                radius={lineRadius}
+                color={isHovered ? 0xfbff00 : frameColor}
+                opacity={frameOpacity}
+              />
+            ))}
+            {raySegments.map((segment, idx) => (
+              <LineTube
+                key={`ray-${idx}`}
+                start={segment[0]}
+                end={segment[1]}
+                radius={lineRadius}
+                color={isHovered ? 0xfbff00 : rayColor}
+                opacity={rayOpacity}
+              />
+            ))}
+            {upIndicatorSegments.map((segment, idx) => (
+              <LineTube
+                key={`up-${idx}`}
+                start={segment[0]}
+                end={segment[1]}
+                radius={lineRadius}
+                color={isHovered ? 0xfbff00 : color}
+                opacity={lineOpacity}
+              />
+            ))}
+          </>
+        ))}
+
+      {/* show_frame: 4-edge image border, slightly in front of the image. */}
+      {showFrame &&
+        (lineStyle === "flat" ? (
           <Line
-            points={framePoints}
-            color={isHovered ? 0xfbff00 : rgbToInt(props.frame_color ?? message.props.color)}
+            points={borderPoints}
+            color={
+              isHovered
+                ? 0xfbff00
+                : rgbToInt(
+                    message.props.frame_color ?? message.props.color,
+                  )
+            }
             lineWidth={
-              isHovered ? 1.5 * message.props.line_width : message.props.line_width
+              isHovered
+                ? 1.5 * message.props.line_width
+                : message.props.line_width
             }
             segments
             opacity={frameOpacity}
             transparent={frameOpacity < 1.0}
           />
-          {/* Ray lines */}
-          <Line
-            points={rayPoints}
-            color={isHovered ? 0xfbff00 : rgbToInt(props.ray_color ?? message.props.color)}
-            lineWidth={
-              isHovered ? 1.5 * message.props.line_width : message.props.line_width
-            }
-            segments
-            opacity={rayOpacity}
-            transparent={rayOpacity < 1.0}
-          />
-          {/* Up indicator */}
-          <Line
-            points={upIndicatorPoints}
-            color={isHovered ? 0xfbff00 : rgbToInt(message.props.color)}
-            lineWidth={
-              isHovered ? 1.5 * message.props.line_width : message.props.line_width
-            }
-            segments
-            opacity={lineOpacity}
-            transparent={lineOpacity < 1.0}
-          />
-        </>
-      ) : (
-        <>
-          {/* Frame tubes */}
-          {frameSegments.map((segment, idx) => (
-            <LineTube
-              key={`frame-${idx}`}
-              start={segment[0]}
-              end={segment[1]}
-              radius={lineRadius}
-              color={isHovered ? 0xfbff00 : frameColor}
-              opacity={frameOpacity}
-            />
-          ))}
-          {/* Ray tubes */}
-          {raySegments.map((segment, idx) => (
-            <LineTube
-              key={`ray-${idx}`}
-              start={segment[0]}
-              end={segment[1]}
-              radius={lineRadius}
-              color={isHovered ? 0xfbff00 : rayColor}
-              opacity={rayOpacity}
-            />
-          ))}
-          {/* Up indicator tubes */}
-          {upIndicatorSegments.map((segment, idx) => (
-            <LineTube
-              key={`up-${idx}`}
-              start={segment[0]}
-              end={segment[1]}
-              radius={lineRadius}
-              color={isHovered ? 0xfbff00 : color}
-              opacity={lineOpacity}
-            />
-          ))}
-        </>
-      ))}
+        ) : (
+          <>
+            {borderSegments.map((segment, idx) => (
+              <LineTube
+                key={`border-${idx}`}
+                start={segment[0]}
+                end={segment[1]}
+                radius={lineRadius}
+                color={isHovered ? 0xfbff00 : frameColor}
+                opacity={frameOpacity}
+              />
+            ))}
+          </>
+        ))}
 
-      {/* Filled faces - only for "filled" variant, use image opacity */}
+      {/* show_axes: up direction indicator, same color as border. */}
+      {showAxes &&
+        (lineStyle === "flat" ? (
+          <Line
+            points={axesUpPoints}
+            color={isHovered ? 0xfbff00 : rgbToInt(message.props.frame_color ?? message.props.color)}
+            lineWidth={
+              isHovered
+                ? 1.5 * message.props.line_width
+                : message.props.line_width
+            }
+            segments
+            opacity={frameOpacity}
+            transparent={frameOpacity < 1.0}
+          />
+        ) : (
+          <>
+            {axesUpSegments.map((segment, idx) => (
+              <LineTube
+                key={`axes-up-${idx}`}
+                start={segment[0]}
+                end={segment[1]}
+                radius={lineRadius}
+                color={isHovered ? 0xfbff00 : frameColor}
+                opacity={frameOpacity}
+              />
+            ))}
+          </>
+        ))}
+
+      {/* Filled faces - only for "filled" variant */}
       {message.props.variant === "filled" && geometry && (
         <mesh geometry={geometry}>
           <meshBasicMaterial
@@ -360,12 +476,10 @@ export const CameraFrustumComponent = React.forwardRef<
         </mesh>
       )}
 
-      {/* Image plane - use image opacity */}
-      {/* In image_only mode, center the image at the camera origin (0,0,0).
-          Otherwise, place it at the far plane with a tiny offset to avoid z-fighting. */}
+      {/* Image plane */}
       {imageTexture && (
         <mesh
-          position={isImageOnly ? [0.0, 0.0, 0.0] : [0.0, 0.0, z * 0.999999]}
+          position={[0.0, 0.0, imageZ]}
           rotation={new THREE.Euler(Math.PI, 0.0, 0.0)}
           castShadow={message.props.cast_shadow}
           receiveShadow={message.props.receive_shadow === true}

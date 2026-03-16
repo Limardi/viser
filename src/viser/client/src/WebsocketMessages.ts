@@ -20,7 +20,16 @@ export interface CameraFrustumMessage {
     _image_data: Uint8Array<ArrayBuffer> | null;
     cast_shadow: boolean;
     receive_shadow: boolean | number;
+    line_opacity: number | null;
+    line_style: "flat" | "tube";
+    line_radius: number;
+    frame_color: [number, number, number] | null;
+    ray_color: [number, number, number] | null;
+    frame_opacity: number | null;
+    ray_opacity: number | null;
     variant: "wireframe" | "filled" | "image_only";
+    show_frame: boolean;
+    show_axes: boolean;
   };
 }
 /** GlTF message.
@@ -374,9 +383,9 @@ export interface ImageMessage {
     render_height: number;
     cast_shadow: boolean;
     receive_shadow: boolean | number;
-    show_outline?: boolean;
-    image_frame_color?: [number, number, number] | null;
-    image_frame_width?: number;
+    show_outline: boolean;
+    image_frame_color: [number, number, number] | null;
+    image_frame_width: number;
   };
 }
 /** Message from server->client carrying line segments information.
@@ -390,7 +399,7 @@ export interface LineSegmentsMessage {
     points: Uint8Array<ArrayBuffer>;
     line_width: number;
     colors: Uint8Array<ArrayBuffer>;
-    opacity?: number;
+    opacity: number | null;
   };
 }
 /** Message from server->client carrying Catmull-Rom spline information.

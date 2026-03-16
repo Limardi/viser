@@ -984,6 +984,8 @@ class SceneApi:
         cast_shadow: bool = True,
         receive_shadow: bool | float = True,
         variant: Literal["wireframe", "filled", "image_only"] = "wireframe",
+        show_frame: bool = True,
+        show_axes: bool = True,
     ) -> CameraFrustumHandle:
         """Add a camera frustum to the scene for visualization.
 
@@ -1028,6 +1030,9 @@ class SceneApi:
             variant: Variant of the frustum visualization. 'wireframe' shows lines only,
                 'filled' adds semi-transparent faces, 'image_only' shows just the image
                 centered at the camera origin with no frustum lines or rays.
+            show_frame: Whether to show the 4-edge rectangle border around the image plane.
+            show_axes: Whether to show the camera up direction indicator line
+                above the image plane.
 
         Returns:
             Handle for manipulating scene node.
@@ -1064,6 +1069,8 @@ class SceneApi:
                 cast_shadow=cast_shadow,
                 receive_shadow=receive_shadow,
                 variant=variant,
+                show_frame=show_frame,
+                show_axes=show_axes,
             ),
         )
         handle = CameraFrustumHandle._make(self, message, name, wxyz, position, visible)
