@@ -268,10 +268,12 @@ export const CameraFrustumComponent = React.forwardRef<
     return segments;
   }, [upIndicatorPoints]);
 
+  const isImageOnly = message.props.variant === "image_only";
+
   return (
     <group ref={ref}>
-      {/* Wireframe lines - flat or tube based on line_style */}
-      {lineStyle === "flat" ? (
+      {/* Wireframe lines - hidden in image_only mode */}
+      {!isImageOnly && (lineStyle === "flat" ? (
         <>
           {/* Frame lines */}
           <Line
@@ -343,7 +345,7 @@ export const CameraFrustumComponent = React.forwardRef<
             />
           ))}
         </>
-      )}
+      ))}
 
       {/* Filled faces - only for "filled" variant, use image opacity */}
       {message.props.variant === "filled" && geometry && (
@@ -359,10 +361,11 @@ export const CameraFrustumComponent = React.forwardRef<
       )}
 
       {/* Image plane - use image opacity */}
+      {/* In image_only mode, center the image at the camera origin (0,0,0).
+          Otherwise, place it at the far plane with a tiny offset to avoid z-fighting. */}
       {imageTexture && (
         <mesh
-          // 0.999999 is to avoid z-fighting with the frustum lines.
-          position={[0.0, 0.0, z * 0.999999]}
+          position={isImageOnly ? [0.0, 0.0, 0.0] : [0.0, 0.0, z * 0.999999]}
           rotation={new THREE.Euler(Math.PI, 0.0, 0.0)}
           castShadow={message.props.cast_shadow}
           receiveShadow={message.props.receive_shadow === true}

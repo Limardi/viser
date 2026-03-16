@@ -142,6 +142,19 @@ img_default_outline = server.scene.add_image(
     wxyz=(1.0, 0.0, 0.0, 0.0),
 )
 
+# Test 8: Camera frustum with image_only variant
+# Image is centered at the camera position, no frustum lines shown.
+frustum_image_only = server.scene.add_camera_frustum(
+    "/camera_image_only",
+    fov=np.pi / 3,
+    aspect=16 / 9,
+    scale=0.8,
+    color=(255, 255, 255),
+    image=images[0],
+    variant="image_only",
+    position=(6, 3, 0),
+)
+
 
 print("=" * 70)
 print("Camera Frustum Test - SEPARATE FRAME & RAY COLORS + OPACITIES")
@@ -171,6 +184,7 @@ print()
 print("  5. Image with RED outline (thick, above left)")
 print("  6. Image with GREEN outline (thin, above center)")
 print("  7. Image with default YELLOW outline (above right)")
+print("  8. Camera frustum 'image_only' - image at camera origin, no frustum lines")
 print()
 print("KEY TEST: Each frustum part (frame/rays) should have")
 print("          DIFFERENT colors AND opacities!")

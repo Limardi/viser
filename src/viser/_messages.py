@@ -271,9 +271,10 @@ class CameraFrustumProps:
     """Opacity of the frustum frame rectangle. None means opaque. If not provided, defaults to line_opacity. """
     ray_opacity: Optional[float] = None
     """Opacity of the frustum rays (lines from origin to corners). None means opaque. If not provided, defaults to line_opacity. """
-    variant: Literal["wireframe", "filled"] = "wireframe"
+    variant: Literal["wireframe", "filled", "image_only"] = "wireframe"
     """Variant of the frustum visualization. 'wireframe' shows lines only,
-    'filled' adds semi-transparent faces. """
+    'filled' adds semi-transparent faces, 'image_only' shows just the image
+    centered at the camera origin without any frustum lines. """
 
 
 @dataclasses.dataclass

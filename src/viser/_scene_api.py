@@ -983,7 +983,7 @@ class SceneApi:
         visible: bool = True,
         cast_shadow: bool = True,
         receive_shadow: bool | float = True,
-        variant: Literal["wireframe", "filled"] = "wireframe",
+        variant: Literal["wireframe", "filled", "image_only"] = "wireframe",
     ) -> CameraFrustumHandle:
         """Add a camera frustum to the scene for visualization.
 
@@ -1025,7 +1025,9 @@ class SceneApi:
                 receives shadows normally. If False, no shadows. If a float
                 (0-1), shadows are rendered with a fixed opacity regardless of
                 lighting conditions.
-            variant: Variant of the frustum visualization. 'wireframe' shows lines only, 'filled' adds semi-transparent faces.
+            variant: Variant of the frustum visualization. 'wireframe' shows lines only,
+                'filled' adds semi-transparent faces, 'image_only' shows just the image
+                centered at the camera origin with no frustum lines or rays.
 
         Returns:
             Handle for manipulating scene node.
